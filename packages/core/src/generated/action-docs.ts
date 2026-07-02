@@ -9034,13 +9034,48 @@ export const allActionsSpec = {
 				{
 					name: "agentType",
 					description:
-						"Agent type (elizaos, pi-agent, opencode, codex, or claude) for create / spawn_agent / control.resume. Defaults to ELIZA_ACP_DEFAULT_AGENT, normally elizaos.",
+						"Heuristic backend guess (elizaos, pi-agent, opencode, codex, or claude) for create / spawn_agent / control.resume. This is a weak hint — it loses to the operator default/pin and to character routing. To honor an EXPLICIT user request use requestedBackend instead.",
 					required: false,
 					schema: {
 						type: "string",
 					},
 					descriptionCompressed:
-						"Agent type (elizaos, pi-agent, opencode, codex, or claude) for create/spawn_agent/control. resume. Defaults to ELIZA_ACP_DEFAULT_AGENT, normally elizaos.",
+						"Heuristic backend guess (elizaos, pi-agent, opencode, codex, or claude) for create/spawn_agent/control. resume. This is a weak hint - it loses to the...",
+				},
+				{
+					name: "appMonetized",
+					description:
+						"Set true when the user wants the app to EARN MONEY / charge for access — e.g. 'people pay $1 to chat with X', 'charge per message', 'a paid app', 'monetized', a paywall, or per-use pricing. Judge the user's INTENT, not specific keywords. When true the sub-agent gets the monetized Eliza Cloud contract (register for an appId, inference markup, OAuth + affiliate billing) instead of a free static page. Leave unset for a normal free app or non-app task.",
+					required: false,
+					schema: {
+						type: "boolean",
+					},
+					descriptionCompressed:
+						"Set true when user wants the app to EARN MONEY/charge for access - e. g. 'people pay $1 to chat with X', 'charge per msg', 'a paid app', 'monetized', a...",
+				},
+				{
+					name: "requestedBackend",
+					description:
+						"Set ONLY when the user EXPLICITLY named a coding backend for THIS task (e.g. 'use codex', 'have claude build it') — one of elizaos, pi-agent, opencode, codex, claude. Leave unset if the user did not name one; never guess. Unlike agentType this overrides the configured default/pin.",
+					required: false,
+					schema: {
+						type: "string",
+						enum: ["elizaos", "pi-agent", "opencode", "codex", "claude"],
+					},
+					descriptionCompressed:
+						"Set ONLY when user EXPLICITLY named a coding backend for THIS task (e. g. 'use codex', 'have claude build it') - one of elizaos, pi-agent, opencode, codex...",
+				},
+				{
+					name: "taskComplexity",
+					description:
+						"Your honest assessment of this coding task's difficulty: 'simple' (small/routine), 'moderate', or 'hard' (large, subtle, multi-file, or architectural). Used only to route to whichever backend the character configured for that difficulty (character.routing.coding.byTag). Judge the task itself — do not echo words from the user.",
+					required: false,
+					schema: {
+						type: "string",
+						enum: ["simple", "moderate", "hard"],
+					},
+					descriptionCompressed:
+						"Your honest assessment of this coding task's difficulty: 'simple' (small/routine), 'moderate', or 'hard' (large, subtle, multi-file, or architectural). Used...",
 				},
 				{
 					name: "agents",
@@ -9631,6 +9666,9 @@ export const allActionsSpec = {
 							operation: "create",
 							task: "example",
 							agentType: "example",
+							appMonetized: false,
+							requestedBackend: "elizaos",
+							taskComplexity: "simple",
 							agents: "example",
 							repo: "example",
 							workdir: "example",

@@ -1,3 +1,7 @@
+# Integration lane — real Next server + real Postgres (feed-postgres :5433) via scripts/test-integration-with-server.ts
+# Commit: 311c91aaa9164905dc8845a2adae5b9f9a29a3d3 (rebased onto origin/develop e870f2c436)
+# Date: 2026-07-02T22:34:56Z
+
 
 🧪 Running integration file: packages/testing/integration/admin-dashboard-rbac.integration.test.ts
 🧪 Starting isolated integration server at http://127.0.0.1:3100
@@ -18,11 +22,13 @@ packages/testing/integration/admin-dashboard-rbac.integration.test.ts:
 [Drizzle] Database connection created 
 [Test Preload] ✅ Database connection verified
 [Test Preload] Integration test environment ready
-[2026-07-02T22:05:18.157Z] [Redis] [INFO] Test environment detected - skipping Redis initialization
-[2026-07-02T22:05:18.171Z] [TrendingGroupingService] [WARN] No LLM API key configured (GROQ_API_KEY or OPENAI_API_KEY) - trending grouping will use fallback logic
-[2026-07-02T22:05:18.172Z] [FeedLLMClient] [WARN] No LLM API key configured - FeedLLMClient is disabled {"missingKeyContext":"gameTick"}
+[2026-07-02T22:35:40.460Z] [Redis] [INFO] Test environment detected - skipping Redis initialization
+[2026-07-02T22:35:40.472Z] [TrendingGroupingService] [WARN] No LLM API key configured (GROQ_API_KEY or OPENAI_API_KEY) - trending grouping will use fallback logic
+[2026-07-02T22:35:40.473Z] [FeedLLMClient] [WARN] No LLM API key configured - FeedLLMClient is disabled {"missingKeyContext":"gameTick"}
 ✅ Server available for testing
 ✅ Admin token available
+⏳ Still running: packages/testing/integration/admin-dashboard-rbac.integration.test.ts
+⏳ Still running: packages/testing/integration/admin-dashboard-rbac.integration.test.ts
 ⏳ Still running: packages/testing/integration/admin-dashboard-rbac.integration.test.ts
 ⏳ Still running: packages/testing/integration/admin-dashboard-rbac.integration.test.ts
 ⏳ Still running: packages/testing/integration/admin-dashboard-rbac.integration.test.ts
@@ -33,7 +39,7 @@ packages/testing/integration/admin-dashboard-rbac.integration.test.ts:
  54 pass
  0 fail
  207 expect() calls
-Ran 54 tests across 1 file. [26.69s]
+Ran 54 tests across 1 file. [35.77s]
 
 🧪 Running integration file: packages/testing/integration/api-endpoints.integration.test.ts
 🧪 Starting isolated integration server at http://127.0.0.1:3100
@@ -54,9 +60,9 @@ packages/testing/integration/api-endpoints.integration.test.ts:
 [Drizzle] Database connection created 
 [Test Preload] ✅ Database connection verified
 [Test Preload] Integration test environment ready
-[2026-07-02T22:06:06.410Z] [Redis] [INFO] Test environment detected - skipping Redis initialization
-[2026-07-02T22:06:06.425Z] [TrendingGroupingService] [WARN] No LLM API key configured (GROQ_API_KEY or OPENAI_API_KEY) - trending grouping will use fallback logic
-[2026-07-02T22:06:06.426Z] [FeedLLMClient] [WARN] No LLM API key configured - FeedLLMClient is disabled {"missingKeyContext":"gameTick"}
+[2026-07-02T22:36:41.680Z] [Redis] [INFO] Test environment detected - skipping Redis initialization
+[2026-07-02T22:36:41.694Z] [TrendingGroupingService] [WARN] No LLM API key configured (GROQ_API_KEY or OPENAI_API_KEY) - trending grouping will use fallback logic
+[2026-07-02T22:36:41.694Z] [FeedLLMClient] [WARN] No LLM API key configured - FeedLLMClient is disabled {"missingKeyContext":"gameTick"}
 ⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
 ⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
 ⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
@@ -103,6 +109,142 @@ Query performance summary {
 ⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
 ⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
 ⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
-[Test Preload] Shutting down test environment...
-[2026-07-02T22:08:29.742Z] [ApiKeyFlusher] [DEBUG] Redis not available, skipping flush
-[Test Preload] Database disconnected
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+Query performance summary {
+  totalQueries: 0,
+  slowQueries: 0,
+  slowQueryPercentage: "0%",
+  avgDuration: "0.00ms",
+  p95Duration: "0.00ms",
+  p99Duration: "0.00ms",
+  uniqueSlowQueries: 0,
+}
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+292 |       expect(res.status).toBe(401);
+293 |     });
+294 | 
+295 |     test("GET /api/moderation/reports - requires auth", async () => {
+296 |       const res = await get("/api/moderation/reports");
+297 |       expect(res.status).toBe(401);
+                               ^
+error: expect(received).toBe(expected)
+
+Expected: 401
+Received: 404
+
+      at <anonymous> (/home/shaw/eliza-worktrees/feed-e2e-delarp-11380/packages/feed/packages/testing/integration/api-endpoints.integration.test.ts:297:26)
+(fail) API Endpoints - Complete Coverage > Moderation > GET /api/moderation/reports - requires auth [7786.33ms]
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+Query performance summary {
+  totalQueries: 0,
+  slowQueries: 0,
+  slowQueryPercentage: "0%",
+  avgDuration: "0.00ms",
+  p95Duration: "0.00ms",
+  p99Duration: "0.00ms",
+  uniqueSlowQueries: 0,
+}
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+Query performance summary {
+  totalQueries: 0,
+  slowQueries: 0,
+  slowQueryPercentage: "0%",
+  avgDuration: "0.00ms",
+  p95Duration: "0.00ms",
+  p99Duration: "0.00ms",
+  uniqueSlowQueries: 0,
+}
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+456 |   // NFT ENDPOINTS
+457 |   // ============================================
+458 |   describe("NFT", () => {
+459 |     test("GET /api/nft/gallery", async () => {
+460 |       const res = await get("/api/nft/gallery");
+461 |       expect(res.status).toBe(200);
+                               ^
+error: expect(received).toBe(expected)
+
+Expected: 200
+Received: 503
+
+      at <anonymous> (/home/shaw/eliza-worktrees/feed-e2e-delarp-11380/packages/feed/packages/testing/integration/api-endpoints.integration.test.ts:461:26)
+(fail) API Endpoints - Complete Coverage > NFT > GET /api/nft/gallery [39.52ms]
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+Query performance summary {
+  totalQueries: 0,
+  slowQueries: 0,
+  slowQueryPercentage: "0%",
+  avgDuration: "0.00ms",
+  p95Duration: "0.00ms",
+  p99Duration: "0.00ms",
+  uniqueSlowQueries: 0,
+}
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+Query performance summary {
+  totalQueries: 0,
+  slowQueries: 0,
+  slowQueryPercentage: "0%",
+  avgDuration: "0.00ms",
+  p95Duration: "0.00ms",
+  p99Duration: "0.00ms",
+  uniqueSlowQueries: 0,
+}
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+⏳ Still running: packages/testing/integration/api-endpoints.integration.test.ts
+
+ 85 pass
+ 2 fail
+ 115 expect() calls
+Ran 87 tests across 1 file. [449.89s]

@@ -1,7 +1,7 @@
 $ bun run scripts/testing-skip-inventory.mjs
 # Feed skip inventory
-skip markers: 373
-files: 68
+skip markers: 372
+files: 67
 
 categories:
 - live-llm-gated: 30
@@ -11,7 +11,7 @@ categories:
 - conditional-undocumented: 4
 - documented-inline: 196
 - local-optional: 1
-- auth-or-session-gated: 6
+- auth-or-session-gated: 5
 - undocumented-unconditional: 33
 - seed-or-external-state-gated: 2
 
@@ -86,7 +86,6 @@ findings:
 - documented-inline packages/testing/e2e/prediction-market-trading.e2e.test.ts:176 test.skip(!serverAvailable, "Server not available");
 - documented-inline packages/testing/e2e/prediction-market-trading.e2e.test.ts:196 test.skip(!serverAvailable || !authSession, "Server/auth not available");
 - live-llm-gated packages/testing/integration/agent-actions-persistence.integration.test.ts:50 const liveTest = test.skipIf(!liveLlmTestConfig.enabled);
-- auth-or-session-gated packages/testing/integration/api-endpoints.integration.test.ts:298 test.skip("GET /api/moderation/reports - requires auth (route missing, #11707)", async () => {
 - database-gated packages/testing/integration/db-lazy-connection.integration.test.ts:15 const dbLazyDescribe = shouldSkipDatabaseTests() ? describe.skip : describe;
 - live-llm-gated packages/testing/integration/engine-generation-output.test.ts:458 test.skipIf(!liveLlmTestConfig.enabled)(
 - live-llm-gated packages/testing/integration/engine-generation-output.test.ts:480 test.skipIf(!liveLlmTestConfig.enabled)(

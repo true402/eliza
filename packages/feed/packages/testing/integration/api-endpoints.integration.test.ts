@@ -292,10 +292,7 @@ describe("API Endpoints - Complete Coverage", () => {
       expect(res.status).toBe(401);
     });
 
-    // The /api/moderation/reports route does not exist yet (ReportModal POSTs
-    // to it and 404s) — restoring this 401 assertion is an acceptance
-    // criterion of the route implementation tracked in #11707.
-    test.skip("GET /api/moderation/reports - requires auth (route missing, #11707)", async () => {
+    test("GET /api/moderation/reports - requires auth", async () => {
       const res = await get("/api/moderation/reports");
       expect(res.status).toBe(401);
     });

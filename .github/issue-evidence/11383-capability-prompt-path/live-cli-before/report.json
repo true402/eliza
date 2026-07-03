@@ -1,0 +1,1160 @@
+{
+  "runId": "7a1cd060-42fc-45eb-b864-4fc04e9ac8ba",
+  "startedAtIso": "2026-07-03T00:25:06.806Z",
+  "completedAtIso": "2026-07-03T00:26:51.979Z",
+  "providerName": "cli",
+  "scenarios": [
+    {
+      "id": "inbox-triage-capability",
+      "title": "Inbox triage capability routes requests to INBOX and drives the inbox_triage classifier",
+      "domain": "inbox",
+      "tags": [
+        "lifeops",
+        "inbox",
+        "inbox_triage",
+        "llm-eval"
+      ],
+      "status": "failed",
+      "durationMs": 92674,
+      "turns": [
+        {
+          "name": "triage-list-inbox",
+          "kind": "message",
+          "text": "Show me my inbox across every channel.",
+          "responseText": "Here's your inbox across every channel — 3 unread messages:\n\n1. Discord · Priya (On-Call SRE) — \"PROD IS DOWN — checkout 500s, approve emergency rollback now\" (00:23 UTC) — urgent\n2. Telegram · Dana — \"Are we still on for the design review tomorrow at 2pm?\" (00:15 UTC) — needs reply\n3. Gmail · ShoeDeals Weekly — \"50% OFF SNEAKERS — automated promotional newsletter\" (23:55 UTC) — noise\n\nWant me to triage these, draft a reply to Dana, or jump on the Priya outage first?",
+          "actionsCalled": [
+            {
+              "actionName": "INBOX_LIST",
+              "parameters": {
+                "parameters": {
+                  "action": "list",
+                  "platforms": [
+                    "gmail",
+                    "slack",
+                    "discord",
+                    "telegram",
+                    "signal",
+                    "imessage",
+                    "whatsapp"
+                  ]
+                },
+                "actionContext": {
+                  "previousResults": []
+                }
+              },
+              "result": {
+                "success": true,
+                "data": {
+                  "subaction": "list",
+                  "platforms": [
+                    "gmail",
+                    "slack",
+                    "discord",
+                    "telegram",
+                    "signal",
+                    "imessage",
+                    "whatsapp"
+                  ],
+                  "items": [
+                    {
+                      "id": "scenario-inbox-cap-urgent-outage",
+                      "platform": "discord",
+                      "channel": "default",
+                      "senderName": "Priya (On-Call SRE)",
+                      "snippet": "PROD IS DOWN — checkout 500s, approve emergency rollback now",
+                      "receivedAt": "2026-07-03T00:23:19.077Z",
+                      "unread": true
+                    },
+                    {
+                      "id": "scenario-inbox-cap-reply-question",
+                      "platform": "telegram",
+                      "channel": "default",
+                      "senderName": "Dana",
+                      "snippet": "Are we still on for the design review tomorrow at 2pm?",
+                      "receivedAt": "2026-07-03T00:15:19.077Z",
+                      "unread": true
+                    },
+                    {
+                      "id": "scenario-inbox-cap-noise-newsletter",
+                      "platform": "gmail",
+                      "channel": "default",
+                      "senderName": "ShoeDeals Weekly",
+                      "snippet": "50% OFF SNEAKERS — automated promotional newsletter",
+                      "receivedAt": "2026-07-02T23:55:19.077Z",
+                      "threadTopic": "50% OFF SNEAKERS — This Weekend Only!!!",
+                      "unread": true
+                    }
+                  ],
+                  "totalBeforeDedupe": 3
+                },
+                "text": "Pulled 3 messages across 7 platforms.",
+                "raw": {
+                  "success": true,
+                  "text": "Pulled 3 messages across 7 platforms.",
+                  "data": {
+                    "subaction": "list",
+                    "platforms": [
+                      "gmail",
+                      "slack",
+                      "discord",
+                      "telegram",
+                      "signal",
+                      "imessage",
+                      "whatsapp"
+                    ],
+                    "items": [
+                      {
+                        "id": "scenario-inbox-cap-urgent-outage",
+                        "platform": "discord",
+                        "channel": "default",
+                        "senderName": "Priya (On-Call SRE)",
+                        "snippet": "PROD IS DOWN — checkout 500s, approve emergency rollback now",
+                        "receivedAt": "2026-07-03T00:23:19.077Z",
+                        "unread": true
+                      },
+                      {
+                        "id": "scenario-inbox-cap-reply-question",
+                        "platform": "telegram",
+                        "channel": "default",
+                        "senderName": "Dana",
+                        "snippet": "Are we still on for the design review tomorrow at 2pm?",
+                        "receivedAt": "2026-07-03T00:15:19.077Z",
+                        "unread": true
+                      },
+                      {
+                        "id": "scenario-inbox-cap-noise-newsletter",
+                        "platform": "gmail",
+                        "channel": "default",
+                        "senderName": "ShoeDeals Weekly",
+                        "snippet": "50% OFF SNEAKERS — automated promotional newsletter",
+                        "receivedAt": "2026-07-02T23:55:19.077Z",
+                        "threadTopic": "50% OFF SNEAKERS — This Weekend Only!!!",
+                        "unread": true
+                      }
+                    ],
+                    "totalBeforeDedupe": 3
+                  }
+                }
+              }
+            }
+          ],
+          "durationMs": 20593,
+          "failedAssertions": []
+        },
+        {
+          "name": "triage-summarize-inboxes",
+          "kind": "message",
+          "text": "Summarize all my inboxes for me.",
+          "responseText": "Here's your cross-channel inbox snapshot:\n\n- Gmail: 1 message (latest ~11:55 PM UTC yesterday)\n- Discord: 1 message (latest ~12:23 AM UTC today)\n- Telegram: 1 message (latest ~12:15 AM UTC today)\n- Slack, Signal, iMessage, WhatsApp: nothing new\n\n3 unique messages across 7 platforms. Want me to open any of them or draft replies?",
+          "actionsCalled": [
+            {
+              "actionName": "INBOX_SUMMARIZE",
+              "parameters": {
+                "parameters": {
+                  "action": "summarize",
+                  "platforms": [
+                    "email",
+                    "messaging",
+                    "social",
+                    "phone"
+                  ]
+                },
+                "actionContext": {
+                  "previousResults": []
+                }
+              },
+              "result": {
+                "success": false,
+                "data": {
+                  "subaction": "summarize",
+                  "error": "NO_PLATFORMS"
+                },
+                "text": "No supported platforms were specified.",
+                "raw": {
+                  "success": false,
+                  "text": "No supported platforms were specified.",
+                  "data": {
+                    "subaction": "summarize",
+                    "error": "NO_PLATFORMS"
+                  }
+                }
+              }
+            },
+            {
+              "actionName": "INBOX_SUMMARIZE",
+              "parameters": {
+                "parameters": {
+                  "action": "summarize",
+                  "platforms": [
+                    "gmail",
+                    "slack",
+                    "discord",
+                    "telegram",
+                    "signal",
+                    "imessage",
+                    "whatsapp"
+                  ]
+                },
+                "actionContext": {
+                  "previousResults": [
+                    {
+                      "success": false,
+                      "text": "No supported platforms were specified.",
+                      "data": {
+                        "actionName": "INBOX_SUMMARIZE",
+                        "subaction": "summarize",
+                        "error": "NO_PLATFORMS"
+                      }
+                    }
+                  ]
+                }
+              },
+              "result": {
+                "success": true,
+                "data": {
+                  "subaction": "summarize",
+                  "platforms": [
+                    "gmail",
+                    "slack",
+                    "discord",
+                    "telegram",
+                    "signal",
+                    "imessage",
+                    "whatsapp"
+                  ],
+                  "items": [],
+                  "summary": [
+                    {
+                      "platform": "gmail",
+                      "count": 1,
+                      "latestAt": "2026-07-02T23:55:19.077Z"
+                    },
+                    {
+                      "platform": "slack",
+                      "count": 0,
+                      "latestAt": null
+                    },
+                    {
+                      "platform": "discord",
+                      "count": 1,
+                      "latestAt": "2026-07-03T00:23:19.077Z"
+                    },
+                    {
+                      "platform": "telegram",
+                      "count": 1,
+                      "latestAt": "2026-07-03T00:15:19.077Z"
+                    },
+                    {
+                      "platform": "signal",
+                      "count": 0,
+                      "latestAt": null
+                    },
+                    {
+                      "platform": "imessage",
+                      "count": 0,
+                      "latestAt": null
+                    },
+                    {
+                      "platform": "whatsapp",
+                      "count": 0,
+                      "latestAt": null
+                    }
+                  ],
+                  "totalBeforeDedupe": 3
+                },
+                "text": "Summarized 7 platforms (3 unique messages).",
+                "raw": {
+                  "success": true,
+                  "text": "Summarized 7 platforms (3 unique messages).",
+                  "data": {
+                    "subaction": "summarize",
+                    "platforms": [
+                      "gmail",
+                      "slack",
+                      "discord",
+                      "telegram",
+                      "signal",
+                      "imessage",
+                      "whatsapp"
+                    ],
+                    "items": [],
+                    "summary": [
+                      {
+                        "platform": "gmail",
+                        "count": 1,
+                        "latestAt": "2026-07-02T23:55:19.077Z"
+                      },
+                      {
+                        "platform": "slack",
+                        "count": 0,
+                        "latestAt": null
+                      },
+                      {
+                        "platform": "discord",
+                        "count": 1,
+                        "latestAt": "2026-07-03T00:23:19.077Z"
+                      },
+                      {
+                        "platform": "telegram",
+                        "count": 1,
+                        "latestAt": "2026-07-03T00:15:19.077Z"
+                      },
+                      {
+                        "platform": "signal",
+                        "count": 0,
+                        "latestAt": null
+                      },
+                      {
+                        "platform": "imessage",
+                        "count": 0,
+                        "latestAt": null
+                      },
+                      {
+                        "platform": "whatsapp",
+                        "count": 0,
+                        "latestAt": null
+                      }
+                    ],
+                    "totalBeforeDedupe": 3
+                  }
+                }
+              }
+            }
+          ],
+          "durationMs": 25913,
+          "failedAssertions": []
+        },
+        {
+          "name": "triage-search-channels",
+          "kind": "message",
+          "text": "Search every channel for messages about the launch.",
+          "responseText": "I searched across Gmail, Slack, Discord, Telegram, Signal, iMessage, and WhatsApp for messages about the launch and didn't find any matches.",
+          "actionsCalled": [
+            {
+              "actionName": "INBOX_SEARCH",
+              "parameters": {
+                "parameters": {
+                  "action": "search",
+                  "query": "launch"
+                },
+                "actionContext": {
+                  "previousResults": []
+                }
+              },
+              "result": {
+                "success": true,
+                "data": {
+                  "subaction": "search",
+                  "platforms": [
+                    "gmail",
+                    "slack",
+                    "discord",
+                    "telegram",
+                    "signal",
+                    "imessage",
+                    "whatsapp"
+                  ],
+                  "items": [],
+                  "query": "launch",
+                  "totalBeforeDedupe": 0
+                },
+                "text": "No matches for \"launch\".",
+                "raw": {
+                  "success": true,
+                  "text": "No matches for \"launch\".",
+                  "data": {
+                    "subaction": "search",
+                    "platforms": [
+                      "gmail",
+                      "slack",
+                      "discord",
+                      "telegram",
+                      "signal",
+                      "imessage",
+                      "whatsapp"
+                    ],
+                    "items": [],
+                    "query": "launch",
+                    "totalBeforeDedupe": 0
+                  }
+                }
+              }
+            }
+          ],
+          "durationMs": 15125,
+          "failedAssertions": []
+        },
+        {
+          "name": "triage-classify-inbox",
+          "kind": "message",
+          "text": "Triage my inbox and tell me what needs my attention right now.",
+          "responseText": "Here's your inbox triage:\n\n🚨 Urgent — needs you now\n• Priya (On-Call SRE) on Discord: \"PROD IS DOWN — checkout 500s, approve emergency rollback now.\" Suggested reply: approve the rollback and ask for status/ETA.\n\n💬 Needs a reply (low urgency)\n• Dana on Telegram: \"Are we still on for the design review tomorrow at 2pm?\" Suggested reply: confirm 2pm works.\n\n🧹 Safe to ignore\n• ShoeDeals Weekly (Gmail): promotional \"50% OFF SNEAKERS\" newsletter — no action needed.\n\nWant me to send the rollback approval to Priya and confirm 2pm with Dana?",
+          "actionsCalled": [
+            {
+              "actionName": "INBOX_TRIAGE",
+              "parameters": {
+                "parameters": {
+                  "action": "triage"
+                },
+                "actionContext": {
+                  "previousResults": []
+                }
+              },
+              "result": {
+                "success": true,
+                "data": {
+                  "subaction": "triage",
+                  "classified": 3,
+                  "entries": [
+                    {
+                      "id": "f3bc2352-281e-4143-8fe8-b3dc0a85ac11",
+                      "agentId": "546ac3ab-0468-01a2-9d5b-52dfa34bf9cc",
+                      "source": "discord",
+                      "sourceRoomId": null,
+                      "sourceEntityId": null,
+                      "sourceMessageId": "scenario-inbox-cap-urgent-outage",
+                      "channelName": "default",
+                      "channelType": "dm",
+                      "deepLink": null,
+                      "classification": "urgent",
+                      "urgency": "high",
+                      "confidence": 0.95,
+                      "snippet": "PROD IS DOWN — checkout 500s, approve emergency rollback now",
+                      "senderName": "Priya (On-Call SRE)",
+                      "threadContext": null,
+                      "triageReasoning": "Production outage with revenue impact; on-call SRE requesting immediate approval for emergency rollback.",
+                      "suggestedResponse": "Approved — proceed with the emergency rollback immediately. Keep me posted on status and ETA to recovery.",
+                      "draftResponse": null,
+                      "autoReplied": false,
+                      "snoozedUntil": null,
+                      "resolved": false,
+                      "resolvedAt": null,
+                      "createdAt": "2026-07-03T00:26:40.983Z",
+                      "updatedAt": "2026-07-03T00:26:40.983Z"
+                    },
+                    {
+                      "id": "9b316093-003b-42aa-8bee-c374d4049620",
+                      "agentId": "546ac3ab-0468-01a2-9d5b-52dfa34bf9cc",
+                      "source": "gmail",
+                      "sourceRoomId": null,
+                      "sourceEntityId": null,
+                      "sourceMessageId": "scenario-inbox-cap-noise-newsletter",
+                      "channelName": "50% OFF SNEAKERS — This Weekend Only!!!",
+                      "channelType": "dm",
+                      "deepLink": null,
+                      "classification": "ignore",
+                      "urgency": "low",
+                      "confidence": 0.98,
+                      "snippet": "50% OFF SNEAKERS — automated promotional newsletter",
+                      "senderName": "ShoeDeals Weekly",
+                      "threadContext": null,
+                      "triageReasoning": "Automated promotional email with no personal relevance or action needed.",
+                      "suggestedResponse": null,
+                      "draftResponse": null,
+                      "autoReplied": false,
+                      "snoozedUntil": null,
+                      "resolved": false,
+                      "resolvedAt": null,
+                      "createdAt": "2026-07-03T00:26:40.995Z",
+                      "updatedAt": "2026-07-03T00:26:40.995Z"
+                    },
+                    {
+                      "id": "c57f9f65-7ebc-4f51-be17-214a57f1f172",
+                      "agentId": "546ac3ab-0468-01a2-9d5b-52dfa34bf9cc",
+                      "source": "telegram",
+                      "sourceRoomId": null,
+                      "sourceEntityId": null,
+                      "sourceMessageId": "scenario-inbox-cap-reply-question",
+                      "channelName": "default",
+                      "channelType": "dm",
+                      "deepLink": null,
+                      "classification": "needs_reply",
+                      "urgency": "low",
+                      "confidence": 0.9,
+                      "snippet": "Are we still on for the design review tomorrow at 2pm?",
+                      "senderName": "Dana",
+                      "threadContext": null,
+                      "triageReasoning": "Dana is asking to confirm or reschedule a design review meeting tomorrow at 2pm.",
+                      "suggestedResponse": "2pm tomorrow still works for me — see you then.",
+                      "draftResponse": null,
+                      "autoReplied": false,
+                      "snoozedUntil": null,
+                      "resolved": false,
+                      "resolvedAt": null,
+                      "createdAt": "2026-07-03T00:26:40.990Z",
+                      "updatedAt": "2026-07-03T00:26:40.990Z"
+                    }
+                  ]
+                },
+                "text": "Triaged 3 new messages; 3 pending inbox items.",
+                "raw": {
+                  "success": true,
+                  "text": "Triaged 3 new messages; 3 pending inbox items.",
+                  "data": {
+                    "subaction": "triage",
+                    "classified": 3,
+                    "entries": [
+                      {
+                        "id": "f3bc2352-281e-4143-8fe8-b3dc0a85ac11",
+                        "agentId": "546ac3ab-0468-01a2-9d5b-52dfa34bf9cc",
+                        "source": "discord",
+                        "sourceRoomId": null,
+                        "sourceEntityId": null,
+                        "sourceMessageId": "scenario-inbox-cap-urgent-outage",
+                        "channelName": "default",
+                        "channelType": "dm",
+                        "deepLink": null,
+                        "classification": "urgent",
+                        "urgency": "high",
+                        "confidence": 0.95,
+                        "snippet": "PROD IS DOWN — checkout 500s, approve emergency rollback now",
+                        "senderName": "Priya (On-Call SRE)",
+                        "threadContext": null,
+                        "triageReasoning": "Production outage with revenue impact; on-call SRE requesting immediate approval for emergency rollback.",
+                        "suggestedResponse": "Approved — proceed with the emergency rollback immediately. Keep me posted on status and ETA to recovery.",
+                        "draftResponse": null,
+                        "autoReplied": false,
+                        "snoozedUntil": null,
+                        "resolved": false,
+                        "resolvedAt": null,
+                        "createdAt": "2026-07-03T00:26:40.983Z",
+                        "updatedAt": "2026-07-03T00:26:40.983Z"
+                      },
+                      {
+                        "id": "9b316093-003b-42aa-8bee-c374d4049620",
+                        "agentId": "546ac3ab-0468-01a2-9d5b-52dfa34bf9cc",
+                        "source": "gmail",
+                        "sourceRoomId": null,
+                        "sourceEntityId": null,
+                        "sourceMessageId": "scenario-inbox-cap-noise-newsletter",
+                        "channelName": "50% OFF SNEAKERS — This Weekend Only!!!",
+                        "channelType": "dm",
+                        "deepLink": null,
+                        "classification": "ignore",
+                        "urgency": "low",
+                        "confidence": 0.98,
+                        "snippet": "50% OFF SNEAKERS — automated promotional newsletter",
+                        "senderName": "ShoeDeals Weekly",
+                        "threadContext": null,
+                        "triageReasoning": "Automated promotional email with no personal relevance or action needed.",
+                        "suggestedResponse": null,
+                        "draftResponse": null,
+                        "autoReplied": false,
+                        "snoozedUntil": null,
+                        "resolved": false,
+                        "resolvedAt": null,
+                        "createdAt": "2026-07-03T00:26:40.995Z",
+                        "updatedAt": "2026-07-03T00:26:40.995Z"
+                      },
+                      {
+                        "id": "c57f9f65-7ebc-4f51-be17-214a57f1f172",
+                        "agentId": "546ac3ab-0468-01a2-9d5b-52dfa34bf9cc",
+                        "source": "telegram",
+                        "sourceRoomId": null,
+                        "sourceEntityId": null,
+                        "sourceMessageId": "scenario-inbox-cap-reply-question",
+                        "channelName": "default",
+                        "channelType": "dm",
+                        "deepLink": null,
+                        "classification": "needs_reply",
+                        "urgency": "low",
+                        "confidence": 0.9,
+                        "snippet": "Are we still on for the design review tomorrow at 2pm?",
+                        "senderName": "Dana",
+                        "threadContext": null,
+                        "triageReasoning": "Dana is asking to confirm or reschedule a design review meeting tomorrow at 2pm.",
+                        "suggestedResponse": "2pm tomorrow still works for me — see you then.",
+                        "draftResponse": null,
+                        "autoReplied": false,
+                        "snoozedUntil": null,
+                        "resolved": false,
+                        "resolvedAt": null,
+                        "createdAt": "2026-07-03T00:26:40.990Z",
+                        "updatedAt": "2026-07-03T00:26:40.990Z"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ],
+          "durationMs": 30902,
+          "failedAssertions": []
+        }
+      ],
+      "finalChecks": [
+        {
+          "label": "inbox action selected for every triage turn",
+          "type": "selectedAction",
+          "status": "passed",
+          "detail": "selected INBOX_LIST"
+        },
+        {
+          "label": "inbox_triage optimized-prompt model call fired",
+          "type": "modelCallOccurred",
+          "status": "failed",
+          "detail": "modelCallOccurred: expected 1 matching model call(s) with purpose [inbox_triage], saw 0. Observed purposes: (no model-call purposes)"
+        },
+        {
+          "label": "organic triage persisted one entry per seeded message (outage = act-now)",
+          "type": "custom",
+          "status": "passed",
+          "detail": "predicate returned undefined"
+        }
+      ],
+      "actionsCalled": [
+        {
+          "actionName": "INBOX_LIST",
+          "parameters": {
+            "parameters": {
+              "action": "list",
+              "platforms": [
+                "gmail",
+                "slack",
+                "discord",
+                "telegram",
+                "signal",
+                "imessage",
+                "whatsapp"
+              ]
+            },
+            "actionContext": {
+              "previousResults": []
+            }
+          },
+          "result": {
+            "success": true,
+            "data": {
+              "subaction": "list",
+              "platforms": [
+                "gmail",
+                "slack",
+                "discord",
+                "telegram",
+                "signal",
+                "imessage",
+                "whatsapp"
+              ],
+              "items": [
+                {
+                  "id": "scenario-inbox-cap-urgent-outage",
+                  "platform": "discord",
+                  "channel": "default",
+                  "senderName": "Priya (On-Call SRE)",
+                  "snippet": "PROD IS DOWN — checkout 500s, approve emergency rollback now",
+                  "receivedAt": "2026-07-03T00:23:19.077Z",
+                  "unread": true
+                },
+                {
+                  "id": "scenario-inbox-cap-reply-question",
+                  "platform": "telegram",
+                  "channel": "default",
+                  "senderName": "Dana",
+                  "snippet": "Are we still on for the design review tomorrow at 2pm?",
+                  "receivedAt": "2026-07-03T00:15:19.077Z",
+                  "unread": true
+                },
+                {
+                  "id": "scenario-inbox-cap-noise-newsletter",
+                  "platform": "gmail",
+                  "channel": "default",
+                  "senderName": "ShoeDeals Weekly",
+                  "snippet": "50% OFF SNEAKERS — automated promotional newsletter",
+                  "receivedAt": "2026-07-02T23:55:19.077Z",
+                  "threadTopic": "50% OFF SNEAKERS — This Weekend Only!!!",
+                  "unread": true
+                }
+              ],
+              "totalBeforeDedupe": 3
+            },
+            "text": "Pulled 3 messages across 7 platforms.",
+            "raw": {
+              "success": true,
+              "text": "Pulled 3 messages across 7 platforms.",
+              "data": {
+                "subaction": "list",
+                "platforms": [
+                  "gmail",
+                  "slack",
+                  "discord",
+                  "telegram",
+                  "signal",
+                  "imessage",
+                  "whatsapp"
+                ],
+                "items": [
+                  {
+                    "id": "scenario-inbox-cap-urgent-outage",
+                    "platform": "discord",
+                    "channel": "default",
+                    "senderName": "Priya (On-Call SRE)",
+                    "snippet": "PROD IS DOWN — checkout 500s, approve emergency rollback now",
+                    "receivedAt": "2026-07-03T00:23:19.077Z",
+                    "unread": true
+                  },
+                  {
+                    "id": "scenario-inbox-cap-reply-question",
+                    "platform": "telegram",
+                    "channel": "default",
+                    "senderName": "Dana",
+                    "snippet": "Are we still on for the design review tomorrow at 2pm?",
+                    "receivedAt": "2026-07-03T00:15:19.077Z",
+                    "unread": true
+                  },
+                  {
+                    "id": "scenario-inbox-cap-noise-newsletter",
+                    "platform": "gmail",
+                    "channel": "default",
+                    "senderName": "ShoeDeals Weekly",
+                    "snippet": "50% OFF SNEAKERS — automated promotional newsletter",
+                    "receivedAt": "2026-07-02T23:55:19.077Z",
+                    "threadTopic": "50% OFF SNEAKERS — This Weekend Only!!!",
+                    "unread": true
+                  }
+                ],
+                "totalBeforeDedupe": 3
+              }
+            }
+          }
+        },
+        {
+          "actionName": "INBOX_SUMMARIZE",
+          "parameters": {
+            "parameters": {
+              "action": "summarize",
+              "platforms": [
+                "email",
+                "messaging",
+                "social",
+                "phone"
+              ]
+            },
+            "actionContext": {
+              "previousResults": []
+            }
+          },
+          "result": {
+            "success": false,
+            "data": {
+              "subaction": "summarize",
+              "error": "NO_PLATFORMS"
+            },
+            "text": "No supported platforms were specified.",
+            "raw": {
+              "success": false,
+              "text": "No supported platforms were specified.",
+              "data": {
+                "subaction": "summarize",
+                "error": "NO_PLATFORMS"
+              }
+            }
+          }
+        },
+        {
+          "actionName": "INBOX_SUMMARIZE",
+          "parameters": {
+            "parameters": {
+              "action": "summarize",
+              "platforms": [
+                "gmail",
+                "slack",
+                "discord",
+                "telegram",
+                "signal",
+                "imessage",
+                "whatsapp"
+              ]
+            },
+            "actionContext": {
+              "previousResults": [
+                {
+                  "success": false,
+                  "text": "No supported platforms were specified.",
+                  "data": {
+                    "actionName": "INBOX_SUMMARIZE",
+                    "subaction": "summarize",
+                    "error": "NO_PLATFORMS"
+                  }
+                }
+              ]
+            }
+          },
+          "result": {
+            "success": true,
+            "data": {
+              "subaction": "summarize",
+              "platforms": [
+                "gmail",
+                "slack",
+                "discord",
+                "telegram",
+                "signal",
+                "imessage",
+                "whatsapp"
+              ],
+              "items": [],
+              "summary": [
+                {
+                  "platform": "gmail",
+                  "count": 1,
+                  "latestAt": "2026-07-02T23:55:19.077Z"
+                },
+                {
+                  "platform": "slack",
+                  "count": 0,
+                  "latestAt": null
+                },
+                {
+                  "platform": "discord",
+                  "count": 1,
+                  "latestAt": "2026-07-03T00:23:19.077Z"
+                },
+                {
+                  "platform": "telegram",
+                  "count": 1,
+                  "latestAt": "2026-07-03T00:15:19.077Z"
+                },
+                {
+                  "platform": "signal",
+                  "count": 0,
+                  "latestAt": null
+                },
+                {
+                  "platform": "imessage",
+                  "count": 0,
+                  "latestAt": null
+                },
+                {
+                  "platform": "whatsapp",
+                  "count": 0,
+                  "latestAt": null
+                }
+              ],
+              "totalBeforeDedupe": 3
+            },
+            "text": "Summarized 7 platforms (3 unique messages).",
+            "raw": {
+              "success": true,
+              "text": "Summarized 7 platforms (3 unique messages).",
+              "data": {
+                "subaction": "summarize",
+                "platforms": [
+                  "gmail",
+                  "slack",
+                  "discord",
+                  "telegram",
+                  "signal",
+                  "imessage",
+                  "whatsapp"
+                ],
+                "items": [],
+                "summary": [
+                  {
+                    "platform": "gmail",
+                    "count": 1,
+                    "latestAt": "2026-07-02T23:55:19.077Z"
+                  },
+                  {
+                    "platform": "slack",
+                    "count": 0,
+                    "latestAt": null
+                  },
+                  {
+                    "platform": "discord",
+                    "count": 1,
+                    "latestAt": "2026-07-03T00:23:19.077Z"
+                  },
+                  {
+                    "platform": "telegram",
+                    "count": 1,
+                    "latestAt": "2026-07-03T00:15:19.077Z"
+                  },
+                  {
+                    "platform": "signal",
+                    "count": 0,
+                    "latestAt": null
+                  },
+                  {
+                    "platform": "imessage",
+                    "count": 0,
+                    "latestAt": null
+                  },
+                  {
+                    "platform": "whatsapp",
+                    "count": 0,
+                    "latestAt": null
+                  }
+                ],
+                "totalBeforeDedupe": 3
+              }
+            }
+          }
+        },
+        {
+          "actionName": "INBOX_SEARCH",
+          "parameters": {
+            "parameters": {
+              "action": "search",
+              "query": "launch"
+            },
+            "actionContext": {
+              "previousResults": []
+            }
+          },
+          "result": {
+            "success": true,
+            "data": {
+              "subaction": "search",
+              "platforms": [
+                "gmail",
+                "slack",
+                "discord",
+                "telegram",
+                "signal",
+                "imessage",
+                "whatsapp"
+              ],
+              "items": [],
+              "query": "launch",
+              "totalBeforeDedupe": 0
+            },
+            "text": "No matches for \"launch\".",
+            "raw": {
+              "success": true,
+              "text": "No matches for \"launch\".",
+              "data": {
+                "subaction": "search",
+                "platforms": [
+                  "gmail",
+                  "slack",
+                  "discord",
+                  "telegram",
+                  "signal",
+                  "imessage",
+                  "whatsapp"
+                ],
+                "items": [],
+                "query": "launch",
+                "totalBeforeDedupe": 0
+              }
+            }
+          }
+        },
+        {
+          "actionName": "INBOX_TRIAGE",
+          "parameters": {
+            "parameters": {
+              "action": "triage"
+            },
+            "actionContext": {
+              "previousResults": []
+            }
+          },
+          "result": {
+            "success": true,
+            "data": {
+              "subaction": "triage",
+              "classified": 3,
+              "entries": [
+                {
+                  "id": "f3bc2352-281e-4143-8fe8-b3dc0a85ac11",
+                  "agentId": "546ac3ab-0468-01a2-9d5b-52dfa34bf9cc",
+                  "source": "discord",
+                  "sourceRoomId": null,
+                  "sourceEntityId": null,
+                  "sourceMessageId": "scenario-inbox-cap-urgent-outage",
+                  "channelName": "default",
+                  "channelType": "dm",
+                  "deepLink": null,
+                  "classification": "urgent",
+                  "urgency": "high",
+                  "confidence": 0.95,
+                  "snippet": "PROD IS DOWN — checkout 500s, approve emergency rollback now",
+                  "senderName": "Priya (On-Call SRE)",
+                  "threadContext": null,
+                  "triageReasoning": "Production outage with revenue impact; on-call SRE requesting immediate approval for emergency rollback.",
+                  "suggestedResponse": "Approved — proceed with the emergency rollback immediately. Keep me posted on status and ETA to recovery.",
+                  "draftResponse": null,
+                  "autoReplied": false,
+                  "snoozedUntil": null,
+                  "resolved": false,
+                  "resolvedAt": null,
+                  "createdAt": "2026-07-03T00:26:40.983Z",
+                  "updatedAt": "2026-07-03T00:26:40.983Z"
+                },
+                {
+                  "id": "9b316093-003b-42aa-8bee-c374d4049620",
+                  "agentId": "546ac3ab-0468-01a2-9d5b-52dfa34bf9cc",
+                  "source": "gmail",
+                  "sourceRoomId": null,
+                  "sourceEntityId": null,
+                  "sourceMessageId": "scenario-inbox-cap-noise-newsletter",
+                  "channelName": "50% OFF SNEAKERS — This Weekend Only!!!",
+                  "channelType": "dm",
+                  "deepLink": null,
+                  "classification": "ignore",
+                  "urgency": "low",
+                  "confidence": 0.98,
+                  "snippet": "50% OFF SNEAKERS — automated promotional newsletter",
+                  "senderName": "ShoeDeals Weekly",
+                  "threadContext": null,
+                  "triageReasoning": "Automated promotional email with no personal relevance or action needed.",
+                  "suggestedResponse": null,
+                  "draftResponse": null,
+                  "autoReplied": false,
+                  "snoozedUntil": null,
+                  "resolved": false,
+                  "resolvedAt": null,
+                  "createdAt": "2026-07-03T00:26:40.995Z",
+                  "updatedAt": "2026-07-03T00:26:40.995Z"
+                },
+                {
+                  "id": "c57f9f65-7ebc-4f51-be17-214a57f1f172",
+                  "agentId": "546ac3ab-0468-01a2-9d5b-52dfa34bf9cc",
+                  "source": "telegram",
+                  "sourceRoomId": null,
+                  "sourceEntityId": null,
+                  "sourceMessageId": "scenario-inbox-cap-reply-question",
+                  "channelName": "default",
+                  "channelType": "dm",
+                  "deepLink": null,
+                  "classification": "needs_reply",
+                  "urgency": "low",
+                  "confidence": 0.9,
+                  "snippet": "Are we still on for the design review tomorrow at 2pm?",
+                  "senderName": "Dana",
+                  "threadContext": null,
+                  "triageReasoning": "Dana is asking to confirm or reschedule a design review meeting tomorrow at 2pm.",
+                  "suggestedResponse": "2pm tomorrow still works for me — see you then.",
+                  "draftResponse": null,
+                  "autoReplied": false,
+                  "snoozedUntil": null,
+                  "resolved": false,
+                  "resolvedAt": null,
+                  "createdAt": "2026-07-03T00:26:40.990Z",
+                  "updatedAt": "2026-07-03T00:26:40.990Z"
+                }
+              ]
+            },
+            "text": "Triaged 3 new messages; 3 pending inbox items.",
+            "raw": {
+              "success": true,
+              "text": "Triaged 3 new messages; 3 pending inbox items.",
+              "data": {
+                "subaction": "triage",
+                "classified": 3,
+                "entries": [
+                  {
+                    "id": "f3bc2352-281e-4143-8fe8-b3dc0a85ac11",
+                    "agentId": "546ac3ab-0468-01a2-9d5b-52dfa34bf9cc",
+                    "source": "discord",
+                    "sourceRoomId": null,
+                    "sourceEntityId": null,
+                    "sourceMessageId": "scenario-inbox-cap-urgent-outage",
+                    "channelName": "default",
+                    "channelType": "dm",
+                    "deepLink": null,
+                    "classification": "urgent",
+                    "urgency": "high",
+                    "confidence": 0.95,
+                    "snippet": "PROD IS DOWN — checkout 500s, approve emergency rollback now",
+                    "senderName": "Priya (On-Call SRE)",
+                    "threadContext": null,
+                    "triageReasoning": "Production outage with revenue impact; on-call SRE requesting immediate approval for emergency rollback.",
+                    "suggestedResponse": "Approved — proceed with the emergency rollback immediately. Keep me posted on status and ETA to recovery.",
+                    "draftResponse": null,
+                    "autoReplied": false,
+                    "snoozedUntil": null,
+                    "resolved": false,
+                    "resolvedAt": null,
+                    "createdAt": "2026-07-03T00:26:40.983Z",
+                    "updatedAt": "2026-07-03T00:26:40.983Z"
+                  },
+                  {
+                    "id": "9b316093-003b-42aa-8bee-c374d4049620",
+                    "agentId": "546ac3ab-0468-01a2-9d5b-52dfa34bf9cc",
+                    "source": "gmail",
+                    "sourceRoomId": null,
+                    "sourceEntityId": null,
+                    "sourceMessageId": "scenario-inbox-cap-noise-newsletter",
+                    "channelName": "50% OFF SNEAKERS — This Weekend Only!!!",
+                    "channelType": "dm",
+                    "deepLink": null,
+                    "classification": "ignore",
+                    "urgency": "low",
+                    "confidence": 0.98,
+                    "snippet": "50% OFF SNEAKERS — automated promotional newsletter",
+                    "senderName": "ShoeDeals Weekly",
+                    "threadContext": null,
+                    "triageReasoning": "Automated promotional email with no personal relevance or action needed.",
+                    "suggestedResponse": null,
+                    "draftResponse": null,
+                    "autoReplied": false,
+                    "snoozedUntil": null,
+                    "resolved": false,
+                    "resolvedAt": null,
+                    "createdAt": "2026-07-03T00:26:40.995Z",
+                    "updatedAt": "2026-07-03T00:26:40.995Z"
+                  },
+                  {
+                    "id": "c57f9f65-7ebc-4f51-be17-214a57f1f172",
+                    "agentId": "546ac3ab-0468-01a2-9d5b-52dfa34bf9cc",
+                    "source": "telegram",
+                    "sourceRoomId": null,
+                    "sourceEntityId": null,
+                    "sourceMessageId": "scenario-inbox-cap-reply-question",
+                    "channelName": "default",
+                    "channelType": "dm",
+                    "deepLink": null,
+                    "classification": "needs_reply",
+                    "urgency": "low",
+                    "confidence": 0.9,
+                    "snippet": "Are we still on for the design review tomorrow at 2pm?",
+                    "senderName": "Dana",
+                    "threadContext": null,
+                    "triageReasoning": "Dana is asking to confirm or reschedule a design review meeting tomorrow at 2pm.",
+                    "suggestedResponse": "2pm tomorrow still works for me — see you then.",
+                    "draftResponse": null,
+                    "autoReplied": false,
+                    "snoozedUntil": null,
+                    "resolved": false,
+                    "resolvedAt": null,
+                    "createdAt": "2026-07-03T00:26:40.990Z",
+                    "updatedAt": "2026-07-03T00:26:40.990Z"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "failedAssertions": [
+        {
+          "label": "inbox_triage optimized-prompt model call fired",
+          "detail": "modelCallOccurred: expected 1 matching model call(s) with purpose [inbox_triage], saw 0. Observed purposes: (no model-call purposes)"
+        }
+      ],
+      "providerName": "cli"
+    }
+  ],
+  "totals": {
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "flakyPassed": 0,
+    "costUsd": 0,
+    "finalChecksSkipped": 0
+  },
+  "totalCount": 1,
+  "passedCount": 0,
+  "failedCount": 1,
+  "skippedCount": 0,
+  "flakyPassedCount": 0,
+  "totalCostUsd": 0,
+  "artifactPaths": {
+    "runDir": "/tmp/claude-1000/-home-shaw-milady-eliza/da253a81-b404-4458-8364-46d9209b4b08/scratchpad/live-run/run",
+    "matrixJson": "/tmp/claude-1000/-home-shaw-milady-eliza/da253a81-b404-4458-8364-46d9209b4b08/scratchpad/live-run/run/matrix.json",
+    "viewerIndex": "/tmp/claude-1000/-home-shaw-milady-eliza/da253a81-b404-4458-8364-46d9209b4b08/scratchpad/live-run/run/viewer/index.html",
+    "viewerData": "/tmp/claude-1000/-home-shaw-milady-eliza/da253a81-b404-4458-8364-46d9209b4b08/scratchpad/live-run/run/viewer/data.js"
+  }
+}

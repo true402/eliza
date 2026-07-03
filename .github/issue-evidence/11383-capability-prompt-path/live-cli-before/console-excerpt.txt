@@ -1,0 +1,7 @@
+ Info       [Migration] ✓ Migration complete - pre-1.6.5 → 1.6.5+ schema migration finished
+ Info       [eliza-scenarios] provider: cli
+ Info       [eliza-scenarios] ▶ inbox-triage-capability
+ Info       [INBOX] list platforms=gmail,slack,discord,telegram,signal,imessage,whatsapp pre=3 post=3
+ Info       [INBOX] summarize platforms=gmail,slack,discord,telegram,signal,imessage,whatsapp pre=3 post=3
+ Info       [INBOX] search platforms=gmail,slack,discord,telegram,signal,imessage,whatsapp pre=0 post=0
+ Info       [eliza-scenarios] ✗ inbox-triage-capability failed (92674ms)

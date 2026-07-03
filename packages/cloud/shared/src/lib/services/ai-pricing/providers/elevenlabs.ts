@@ -1,7 +1,7 @@
 import { ELEVENLABS_SNAPSHOT_PRICING } from "../../ai-pricing-definitions";
 import { getCachedExternalEntries } from "../cache";
 import { EXTERNAL_CACHE_TTL_MS, type PreparedPricingEntry } from "../types";
-import { buildMusicSnapshotEntries } from "./suno";
+import { buildAudioSnapshotEntries } from "./suno";
 
 export async function fetchElevenLabsEntries(): Promise<PreparedPricingEntry[]> {
   return await getCachedExternalEntries("elevenlabs", async () => {
@@ -24,7 +24,7 @@ export async function fetchElevenLabsEntries(): Promise<PreparedPricingEntry[]> 
         staleAfter,
         metadata: entry.metadata,
       })),
-      ...buildMusicSnapshotEntries("elevenlabs", "elevenlabs_snapshot"),
+      ...buildAudioSnapshotEntries("elevenlabs", "elevenlabs_snapshot"),
     ];
   });
 }

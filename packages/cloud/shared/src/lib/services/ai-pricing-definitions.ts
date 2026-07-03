@@ -4,9 +4,13 @@ export type PricingProductFamily =
   | "image"
   | "video"
   | "music"
+  | "sfx"
   | "tts"
   | "stt"
   | "voice_clone";
+
+/** Audio-generation product families served by /api/v1/generate-music. */
+export type AudioProductFamily = Extract<PricingProductFamily, "music" | "sfx">;
 
 export type PricingBillingSource =
   | "gateway"
@@ -151,10 +155,11 @@ export interface SupportedVideoModelDefinition {
   };
 }
 
-export interface SupportedMusicModelDefinition {
+export interface SupportedAudioModelDefinition {
   modelId: string;
   provider: "fal" | "elevenlabs" | "suno";
   billingSource: "fal" | "elevenlabs" | "suno";
+  productFamily: AudioProductFamily;
   label: string;
   pageUrl: string;
   defaultParameters: {
@@ -162,11 +167,11 @@ export interface SupportedMusicModelDefinition {
   };
 }
 
-export interface MusicSnapshotEntry {
+export interface AudioSnapshotEntry {
   modelId: string;
   provider: "fal" | "elevenlabs" | "suno";
   billingSource: "fal" | "elevenlabs" | "suno";
-  productFamily: "music";
+  productFamily: AudioProductFamily;
   chargeType: string;
   unit: PricingChargeUnit;
   unitPrice: number;
@@ -181,7 +186,7 @@ export interface ElevenLabsSnapshotEntry {
   billingSource: "elevenlabs";
   productFamily: Exclude<
     PricingProductFamily,
-    "language" | "embedding" | "image" | "video" | "music"
+    "language" | "embedding" | "image" | "video" | "music" | "sfx"
   >;
   chargeType: string;
   unit: PricingChargeUnit;
@@ -466,11 +471,12 @@ export const SUPPORTED_VIDEO_MODELS: SupportedVideoModelDefinition[] = [
   },
 ] as const;
 
-export const SUPPORTED_MUSIC_MODELS: SupportedMusicModelDefinition[] = [
+export const SUPPORTED_AUDIO_MODELS: SupportedAudioModelDefinition[] = [
   {
     modelId: "fal-ai/minimax-music/v2.6",
     provider: "fal",
     billingSource: "fal",
+    productFamily: "music",
     label: "MiniMax Music 2.6",
     pageUrl: "https://fal.ai/models/fal-ai/minimax-music/v2.6/api",
     defaultParameters: {
@@ -481,6 +487,7 @@ export const SUPPORTED_MUSIC_MODELS: SupportedMusicModelDefinition[] = [
     modelId: "elevenlabs/music_v1",
     provider: "elevenlabs",
     billingSource: "elevenlabs",
+    productFamily: "music",
     label: "ElevenLabs Music v1",
     pageUrl: "https://elevenlabs.io/docs/api-reference/music/compose",
     defaultParameters: {
@@ -491,15 +498,49 @@ export const SUPPORTED_MUSIC_MODELS: SupportedMusicModelDefinition[] = [
     modelId: "suno/default",
     provider: "suno",
     billingSource: "suno",
+    productFamily: "music",
     label: "Suno-compatible provider",
     pageUrl: "https://docs.sunoapi.org/suno-api/generate-music/",
     defaultParameters: {
       durationSeconds: 120,
     },
   },
+  {
+    modelId: "elevenlabs/sound_effects",
+    provider: "elevenlabs",
+    billingSource: "elevenlabs",
+    productFamily: "sfx",
+    label: "ElevenLabs Sound Effects",
+    pageUrl: "https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert",
+    defaultParameters: {
+      durationSeconds: 5,
+    },
+  },
+  {
+    modelId: "fal-ai/elevenlabs/sound-effects",
+    provider: "fal",
+    billingSource: "fal",
+    productFamily: "sfx",
+    label: "ElevenLabs Sound Effects (via Fal)",
+    pageUrl: "https://fal.ai/models/fal-ai/elevenlabs/sound-effects/api",
+    defaultParameters: {
+      durationSeconds: 5,
+    },
+  },
+  {
+    modelId: "fal-ai/stable-audio-25/text-to-audio",
+    provider: "fal",
+    billingSource: "fal",
+    productFamily: "sfx",
+    label: "Stable Audio 2.5",
+    pageUrl: "https://fal.ai/models/fal-ai/stable-audio-25/text-to-audio/api",
+    defaultParameters: {
+      durationSeconds: 10,
+    },
+  },
 ] as const;
 
-export const MUSIC_SNAPSHOT_PRICING: MusicSnapshotEntry[] = [
+export const AUDIO_SNAPSHOT_PRICING: AudioSnapshotEntry[] = [
   {
     modelId: "fal-ai/minimax-music/v2.6",
     provider: "fal",
@@ -540,6 +581,48 @@ export const MUSIC_SNAPSHOT_PRICING: MusicSnapshotEntry[] = [
     metadata: {
       tier: "manual_override_required",
       note: "Suno-compatible provider pricing depends on the configured third-party provider.",
+    },
+  },
+  {
+    modelId: "elevenlabs/sound_effects",
+    provider: "elevenlabs",
+    billingSource: "elevenlabs",
+    productFamily: "sfx",
+    chargeType: "generation",
+    unit: "request",
+    unitPrice: 0.1,
+    sourceUrl: "https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert",
+    metadata: {
+      tier: "manual_override_recommended",
+      note: "Conservative per-generation upper bound; ElevenLabs bills sound effects in plan credits (~100 characters per generation).",
+    },
+  },
+  {
+    modelId: "fal-ai/elevenlabs/sound-effects",
+    provider: "fal",
+    billingSource: "fal",
+    productFamily: "sfx",
+    chargeType: "generation",
+    unit: "request",
+    unitPrice: 0.1,
+    sourceUrl: "https://fal.ai/models/fal-ai/elevenlabs/sound-effects/api",
+    metadata: {
+      tier: "manual_override_recommended",
+      note: "Conservative per-generation upper bound until account-specific Fal pricing is refreshed.",
+    },
+  },
+  {
+    modelId: "fal-ai/stable-audio-25/text-to-audio",
+    provider: "fal",
+    billingSource: "fal",
+    productFamily: "sfx",
+    chargeType: "generation",
+    unit: "request",
+    unitPrice: 0.2,
+    sourceUrl: "https://fal.ai/models/fal-ai/stable-audio-25/text-to-audio/api",
+    metadata: {
+      tier: "manual_override_recommended",
+      note: "Conservative per-generation upper bound until account-specific Fal pricing is refreshed.",
     },
   },
 ] as const;
@@ -661,7 +744,7 @@ export const ELEVENLABS_SNAPSHOT_PRICING: ElevenLabsSnapshotEntry[] = [
 
 export const SUPPORTED_VIDEO_MODEL_IDS = SUPPORTED_VIDEO_MODELS.map((model) => model.modelId);
 export const SUPPORTED_IMAGE_MODEL_IDS = SUPPORTED_IMAGE_MODELS.map((model) => model.modelId);
-export const SUPPORTED_MUSIC_MODEL_IDS = SUPPORTED_MUSIC_MODELS.map((model) => model.modelId);
+export const SUPPORTED_AUDIO_MODEL_IDS = SUPPORTED_AUDIO_MODELS.map((model) => model.modelId);
 
 export function getSupportedVideoModelDefinition(modelId: string) {
   return SUPPORTED_VIDEO_MODELS.find((model) => model.modelId === modelId);
@@ -671,6 +754,6 @@ export function getSupportedImageModelDefinition(modelId: string) {
   return SUPPORTED_IMAGE_MODELS.find((model) => model.modelId === modelId);
 }
 
-export function getSupportedMusicModelDefinition(modelId: string) {
-  return SUPPORTED_MUSIC_MODELS.find((model) => model.modelId === modelId);
+export function getSupportedAudioModelDefinition(modelId: string) {
+  return SUPPORTED_AUDIO_MODELS.find((model) => model.modelId === modelId);
 }

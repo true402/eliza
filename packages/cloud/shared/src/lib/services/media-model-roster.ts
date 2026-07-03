@@ -1,6 +1,6 @@
 import {
+  SUPPORTED_AUDIO_MODELS,
   SUPPORTED_IMAGE_MODEL_IDS,
-  SUPPORTED_MUSIC_MODEL_IDS,
   SUPPORTED_VIDEO_MODEL_IDS,
 } from "./ai-pricing-definitions";
 
@@ -159,10 +159,31 @@ export const MEDIA_MODEL_ROSTER: readonly MediaModelRosterEntry[] = [
     family: "Stable Audio",
     provider: "fal",
     surfaces: ["audio"],
-    status: "deferred",
-    sourceUrls: ["https://fal.ai/explore/models"],
+    status: "wired",
+    sourceUrls: ["https://fal.ai/models/fal-ai/stable-audio-25/text-to-audio/api"],
+    wiredModelIds: ["fal-ai/stable-audio-25/text-to-audio"],
     rationale:
-      "The repo has music pricing support, but no generic FAL audio-generation route/provider for Stable Audio yet.",
+      "Stable Audio 2.5 text-to-audio is priced in the SFX snapshot and routed through the Fal audio provider registry.",
+  },
+  {
+    family: "ElevenLabs Sound Effects",
+    provider: "elevenlabs",
+    surfaces: ["audio"],
+    status: "wired",
+    sourceUrls: ["https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert"],
+    wiredModelIds: ["elevenlabs/sound_effects"],
+    rationale:
+      "ElevenLabs sound-generation is priced in the SFX snapshot and routed through the ElevenLabs audio provider (bytes persisted to R2).",
+  },
+  {
+    family: "ElevenLabs Sound Effects via Fal",
+    provider: "fal",
+    surfaces: ["audio"],
+    status: "wired",
+    sourceUrls: ["https://fal.ai/models/fal-ai/elevenlabs/sound-effects/api"],
+    wiredModelIds: ["fal-ai/elevenlabs/sound-effects"],
+    rationale:
+      "Fal-hosted ElevenLabs sound effects run on FAL_KEY credentials through the Fal audio provider registry with SFX snapshot pricing.",
   },
   {
     family: "MMAudio",
@@ -171,7 +192,7 @@ export const MEDIA_MODEL_ROSTER: readonly MediaModelRosterEntry[] = [
     status: "deferred",
     sourceUrls: ["https://fal.ai/explore/models"],
     rationale:
-      "MMAudio is a video-to-audio/post-production candidate; the current public routes do not accept source video audio-generation jobs.",
+      "MMAudio needs a source-video input contract; the audio provider registry exists, but /api/v1/generate-music does not accept video-to-audio jobs yet.",
   },
   {
     family: "Veo via FAL",
@@ -267,6 +288,15 @@ export function mediaRosterModelIndexes() {
   return {
     image: new Set(SUPPORTED_IMAGE_MODEL_IDS),
     video: new Set(SUPPORTED_VIDEO_MODEL_IDS),
-    music: new Set(SUPPORTED_MUSIC_MODEL_IDS),
+    music: new Set(
+      SUPPORTED_AUDIO_MODELS.filter((model) => model.productFamily === "music").map(
+        (model) => model.modelId,
+      ),
+    ),
+    sfx: new Set(
+      SUPPORTED_AUDIO_MODELS.filter((model) => model.productFamily === "sfx").map(
+        (model) => model.modelId,
+      ),
+    ),
   };
 }

@@ -3,7 +3,7 @@ import type { PricingDimensions } from "../../../db/schemas/ai-pricing";
 import { expandPersistedPricingProviderKeys } from "../../providers/model-id-translation";
 import { logger } from "../../utils/logger";
 import {
-  getSupportedMusicModelDefinition,
+  getSupportedAudioModelDefinition,
   getSupportedVideoModelDefinition,
   type PricingBillingSource,
   type PricingChargeUnit,
@@ -482,21 +482,21 @@ export async function calculateVideoGenerationCostFromCatalog(params: {
   );
 }
 
-export async function calculateMusicGenerationCostFromCatalog(params: {
+export async function calculateAudioGenerationCostFromCatalog(params: {
   model: string;
   provider?: "fal" | "elevenlabs" | "suno";
   billingSource?: "fal" | "elevenlabs" | "suno";
   durationSeconds?: number;
   dimensions?: Record<string, unknown>;
 }): Promise<FlatOperationCost> {
-  const definition = getSupportedMusicModelDefinition(params.model);
+  const definition = getSupportedAudioModelDefinition(params.model);
   const provider =
     params.provider ?? definition?.provider ?? inferProviderFromCanonicalModel(params.model);
   const entry = await resolvePreparedPricingEntry({
     billingSource: params.billingSource,
     provider,
     model: params.model,
-    productFamily: "music",
+    productFamily: definition?.productFamily ?? "music",
     chargeType: "generation",
     dimensions: params.dimensions,
   });

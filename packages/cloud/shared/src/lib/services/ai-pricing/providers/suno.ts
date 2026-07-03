@@ -1,14 +1,14 @@
-import { MUSIC_SNAPSHOT_PRICING, type PricingBillingSource } from "../../ai-pricing-definitions";
+import { AUDIO_SNAPSHOT_PRICING, type PricingBillingSource } from "../../ai-pricing-definitions";
 import { getCachedExternalEntries } from "../cache";
 import { EXTERNAL_CACHE_TTL_MS, type PreparedPricingEntry } from "../types";
 
-export function buildMusicSnapshotEntries(
+export function buildAudioSnapshotEntries(
   billingSource?: PricingBillingSource,
   sourceKind?: string,
 ): PreparedPricingEntry[] {
   const fetchedAt = new Date();
   const staleAfter = new Date(fetchedAt.getTime() + EXTERNAL_CACHE_TTL_MS);
-  return MUSIC_SNAPSHOT_PRICING.filter(
+  return AUDIO_SNAPSHOT_PRICING.filter(
     (entry) => !billingSource || entry.billingSource === billingSource,
   ).map((entry) => ({
     billingSource: entry.billingSource,
@@ -35,6 +35,6 @@ export function buildMusicSnapshotEntries(
 
 export async function fetchSunoEntries(): Promise<PreparedPricingEntry[]> {
   return await getCachedExternalEntries("suno", async () =>
-    buildMusicSnapshotEntries("suno", "suno_snapshot"),
+    buildAudioSnapshotEntries("suno", "suno_snapshot"),
   );
 }

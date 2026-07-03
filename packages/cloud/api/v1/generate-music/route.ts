@@ -1,4 +1,3 @@
-import { createFalClient } from "@fal-ai/client";
 import { Hono } from "hono";
 import { z } from "zod";
 import { failureResponse, jsonError } from "@/lib/api/cloud-worker-errors";
@@ -7,10 +6,12 @@ import {
   RateLimitPresets,
   rateLimit,
 } from "@/lib/middleware/rate-limit-hono-cloudflare";
-import { calculateMusicGenerationCostFromCatalog } from "@/lib/services/ai-pricing";
+import { getAudioProvider } from "@/lib/providers/audio/registry";
+import type { AudioStorage } from "@/lib/providers/audio/types";
+import { calculateAudioGenerationCostFromCatalog } from "@/lib/services/ai-pricing";
 import {
-  getSupportedMusicModelDefinition,
-  SUPPORTED_MUSIC_MODEL_IDS,
+  getSupportedAudioModelDefinition,
+  SUPPORTED_AUDIO_MODEL_IDS,
 } from "@/lib/services/ai-pricing-definitions";
 import { contentSafetyService } from "@/lib/services/content-safety";
 import {
@@ -56,299 +57,13 @@ const musicRequestSchema = z.object({
   extraInput: z.record(z.string(), z.unknown()).optional(),
 });
 
-type MusicRequest = z.infer<typeof musicRequestSchema>;
-
-interface MusicObject {
-  url?: string;
-  file_name?: string;
-  file_size?: number;
-  content_type?: string;
-}
-
-interface NormalizedMusicResult {
-  requestId?: string;
-  status?: string;
-  music: MusicObject;
-  raw?: unknown;
-}
-
 const app = new Hono<AppEnv>();
 
 app.use("*", rateLimit(RateLimitPresets.STRICT));
 
-function envString(env: Bindings, key: string): string | null {
+function envString(env: Bindings, key: string): string | undefined {
   const value = env[key];
-  return typeof value === "string" && value.trim() ? value.trim() : null;
-}
-
-function falKey(env: Bindings): string | null {
-  return envString(env, "FAL_KEY") ?? envString(env, "FAL_API_KEY");
-}
-
-function elevenLabsKey(env: Bindings): string | null {
-  return envString(env, "ELEVENLABS_API_KEY");
-}
-
-function sunoKey(env: Bindings): string | null {
-  return envString(env, "SUNO_API_KEY");
-}
-
-function sunoBaseUrl(env: Bindings): string {
-  return (envString(env, "SUNO_BASE_URL") ?? "https://api.suno.ai/v1").replace(
-    /\/+$/,
-    "",
-  );
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function stringValue(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
-}
-
-function numberValue(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value)
-    ? value
-    : undefined;
-}
-
-function normalizeMusicObject(value: unknown): MusicObject | null {
-  if (!isRecord(value)) return null;
-  const url =
-    stringValue(value.url) ??
-    stringValue(value.audio_url) ??
-    stringValue(value.output_url) ??
-    stringValue(value.file_url);
-  if (!url) return null;
-  return {
-    url,
-    file_name: stringValue(value.file_name),
-    file_size: numberValue(value.file_size),
-    content_type: stringValue(value.content_type),
-  };
-}
-
-function normalizeMusicResult(
-  result: unknown,
-  requestId?: string,
-): NormalizedMusicResult {
-  if (!isRecord(result)) {
-    throw new Error("Music provider returned an invalid response");
-  }
-
-  const direct =
-    normalizeMusicObject(result.audio) ??
-    normalizeMusicObject(result.music) ??
-    normalizeMusicObject(result.file) ??
-    normalizeMusicObject(result.output) ??
-    normalizeMusicObject(result);
-  const fromArray = Array.isArray(result.audios)
-    ? normalizeMusicObject(result.audios[0])
-    : Array.isArray(result.data)
-      ? normalizeMusicObject(result.data[0])
-      : null;
-  const music = direct ?? fromArray;
-  if (!music?.url) {
-    throw new Error("Music provider returned no audio URL");
-  }
-
-  return {
-    requestId:
-      stringValue(result.requestId) ??
-      stringValue(result.request_id) ??
-      stringValue(result.id) ??
-      requestId,
-    status: stringValue(result.status),
-    music,
-    raw: result,
-  };
-}
-
-function contentTypeForOutputFormat(outputFormat: string | undefined): string {
-  if (!outputFormat) return "audio/mpeg";
-  if (outputFormat.startsWith("pcm_")) return "audio/L16";
-  if (outputFormat.startsWith("ulaw_")) return "audio/basic";
-  if (outputFormat.startsWith("wav_")) return "audio/wav";
-  if (outputFormat.startsWith("mp3_")) return "audio/mpeg";
-  return "application/octet-stream";
-}
-
-function extensionForContentType(contentType: string): string {
-  if (contentType.includes("wav")) return "wav";
-  if (contentType.includes("L16") || contentType.includes("pcm")) return "pcm";
-  if (contentType.includes("basic")) return "ulaw";
-  return "mp3";
-}
-
-function buildFalInput(request: MusicRequest): Record<string, unknown> {
-  const input: Record<string, unknown> = {
-    prompt: request.prompt,
-  };
-
-  if (request.lyrics !== undefined) input.lyrics = request.lyrics;
-  if (request.instrumental !== undefined)
-    input.is_instrumental = request.instrumental;
-  if (request.lyricsOptimizer !== undefined) {
-    input.lyrics_optimizer = request.lyricsOptimizer;
-  } else if (!request.lyrics && request.instrumental !== true) {
-    input.lyrics_optimizer = true;
-  }
-  if (request.referenceUrl) {
-    input.audio_url = request.referenceUrl;
-    input.reference_audio_url = request.referenceUrl;
-  }
-  if (request.durationSeconds) {
-    input.duration = request.durationSeconds;
-    input.duration_seconds = request.durationSeconds;
-    input.seconds_total = request.durationSeconds;
-  }
-  if (request.audio) {
-    input.audio_setting = {
-      ...(request.audio.sampleRate
-        ? { sample_rate: request.audio.sampleRate }
-        : {}),
-      ...(request.audio.bitrate ? { bitrate: request.audio.bitrate } : {}),
-      ...(request.audio.format ? { format: request.audio.format } : {}),
-    };
-  }
-
-  return {
-    ...input,
-    ...(request.extraInput ?? {}),
-  };
-}
-
-async function runFalMusic(
-  env: Bindings,
-  request: MusicRequest,
-): Promise<NormalizedMusicResult> {
-  const key = falKey(env);
-  if (!key) {
-    throw new Error("Fal music generation is not configured");
-  }
-
-  let requestId: string | undefined;
-  const fal = createFalClient({
-    credentials: key,
-    suppressLocalCredentialsWarning: true,
-  });
-  const result = await fal.subscribe(request.model, {
-    input: buildFalInput(request),
-    onEnqueue: (id) => {
-      requestId = id;
-    },
-  });
-  return normalizeMusicResult(result, requestId);
-}
-
-async function runElevenLabsMusic(
-  env: Bindings,
-  request: MusicRequest,
-  user: { id: string; organization_id?: string | null },
-): Promise<NormalizedMusicResult> {
-  const key = elevenLabsKey(env);
-  if (!key) {
-    throw new Error("ElevenLabs music generation is not configured");
-  }
-  if (!env.BLOB) {
-    throw new Error("R2 storage is not configured");
-  }
-
-  const outputFormat = request.outputFormat ?? "mp3_44100_128";
-  const url = new URL("https://api.elevenlabs.io/v1/music");
-  url.searchParams.set("output_format", outputFormat);
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "xi-api-key": key,
-    },
-    body: JSON.stringify({
-      prompt: request.prompt,
-      ...(request.durationSeconds
-        ? { music_length_ms: request.durationSeconds * 1000 }
-        : {}),
-      model_id: request.model.replace(/^elevenlabs\//, ""),
-      ...(request.seed !== undefined ? { seed: request.seed } : {}),
-      ...(request.extraInput ?? {}),
-    }),
-    signal: AbortSignal.timeout(120_000),
-  });
-
-  if (!response.ok) {
-    const text = await response.text().catch(() => "");
-    throw new Error(
-      `ElevenLabs music generation failed (${response.status}): ${text}`,
-    );
-  }
-
-  const contentType =
-    response.headers.get("content-type") ??
-    contentTypeForOutputFormat(outputFormat);
-  const bytes = await response.arrayBuffer();
-  const ext = extensionForContentType(contentType);
-  const organizationId = user.organization_id ?? "unknown";
-  const keyPath = `generations/music/${organizationId}/${user.id}/${crypto.randomUUID()}.${ext}`;
-  const stored = await putPublicObject(env, {
-    key: keyPath,
-    body: bytes,
-    contentType,
-    customMetadata: {
-      userId: user.id,
-      organizationId,
-      model: request.model,
-      source: "generate-music",
-    },
-  });
-
-  return {
-    music: {
-      url: stored.url,
-      file_name: keyPath.split("/").at(-1),
-      file_size: bytes.byteLength,
-      content_type: contentType,
-    },
-    raw: { r2Key: stored.key },
-  };
-}
-
-async function runSunoMusic(
-  env: Bindings,
-  request: MusicRequest,
-): Promise<NormalizedMusicResult> {
-  const key = sunoKey(env);
-  if (!key) {
-    throw new Error("Suno-compatible music generation is not configured");
-  }
-
-  const response = await fetch(`${sunoBaseUrl(env)}/generate`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      prompt: request.prompt,
-      ...(request.durationSeconds ? { duration: request.durationSeconds } : {}),
-      ...(request.lyrics ? { lyrics: request.lyrics } : {}),
-      ...(request.instrumental !== undefined
-        ? { instrumental: request.instrumental }
-        : {}),
-      ...(request.extraInput ?? {}),
-    }),
-    signal: AbortSignal.timeout(120_000),
-  });
-
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(
-      `Suno-compatible music generation failed (${response.status})`,
-    );
-  }
-  return normalizeMusicResult(data);
 }
 
 app.post("/", async (c) => {
@@ -356,13 +71,13 @@ app.post("/", async (c) => {
     null;
   // Once the charge is SETTLED, a later (non-critical, post-settle) failure must
   // NOT hit the catch's reconcile(0) — which is non-idempotent and would refund
-  // the already-correct charge, giving free music. Mirrors generate-image.
+  // the already-correct charge, giving free audio. Mirrors generate-image.
   let chargeSettled = false;
 
   try {
     const user = await requireUserOrApiKeyWithOrg(c);
     const request = musicRequestSchema.parse(await c.req.json());
-    const definition = getSupportedMusicModelDefinition(request.model);
+    const definition = getSupportedAudioModelDefinition(request.model);
     if (!definition) {
       return jsonError(
         c,
@@ -370,7 +85,7 @@ app.post("/", async (c) => {
         `Unsupported music model: ${request.model}`,
         "validation_error",
         {
-          supportedModels: SUPPORTED_MUSIC_MODEL_IDS,
+          supportedModels: SUPPORTED_AUDIO_MODEL_IDS,
         },
       );
     }
@@ -393,6 +108,34 @@ app.post("/", async (c) => {
       );
     }
 
+    const audioProvider = getAudioProvider(
+      definition.billingSource,
+      definition.productFamily,
+    );
+    const apiKeys = {
+      FAL_KEY: envString(c.env, "FAL_KEY"),
+      FAL_API_KEY: envString(c.env, "FAL_API_KEY"),
+      ELEVENLABS_API_KEY: envString(c.env, "ELEVENLABS_API_KEY"),
+      SUNO_API_KEY: envString(c.env, "SUNO_API_KEY"),
+      SUNO_BASE_URL: envString(c.env, "SUNO_BASE_URL"),
+    };
+    if (audioProvider.isConfigured && !audioProvider.isConfigured(apiKeys)) {
+      return jsonError(
+        c,
+        503,
+        `${audioProvider.displayName} audio generation is not configured`,
+        "internal_error",
+      );
+    }
+    if (audioProvider.requiresStorage && !c.env.BLOB) {
+      return jsonError(
+        c,
+        503,
+        "R2 storage is not configured",
+        "internal_error",
+      );
+    }
+
     await contentSafetyService.assertSafeForPublicUse({
       surface: "media_generation_prompt",
       organizationId: user.organization_id,
@@ -404,12 +147,16 @@ app.post("/", async (c) => {
           ? `Reference URL: ${request.referenceUrl}`
           : undefined,
       ],
-      metadata: { type: "music", model: request.model, provider },
+      metadata: {
+        type: definition.productFamily,
+        model: request.model,
+        provider,
+      },
     });
 
     const durationSeconds =
       request.durationSeconds ?? definition.defaultParameters.durationSeconds;
-    const cost = await calculateMusicGenerationCostFromCatalog({
+    const cost = await calculateAudioGenerationCostFromCatalog({
       model: request.model,
       provider: definition.provider,
       billingSource: definition.billingSource,
@@ -427,7 +174,7 @@ app.post("/", async (c) => {
         organizationId: user.organization_id,
         userId: user.id,
         amount: cost.totalCost,
-        description: `Music generation: ${request.model}`,
+        description: `${definition.productFamily === "sfx" ? "Sound effect" : "Music"} generation: ${request.model}`,
       });
     } catch (error) {
       if (error instanceof InsufficientCreditsError) {
@@ -443,12 +190,32 @@ app.post("/", async (c) => {
       throw error;
     }
 
-    const normalized =
-      provider === "fal"
-        ? await runFalMusic(c.env, request)
-        : provider === "elevenlabs"
-          ? await runElevenLabsMusic(c.env, request, user)
-          : await runSunoMusic(c.env, request);
+    const organizationId = user.organization_id ?? "unknown";
+    const storage: AudioStorage | undefined = c.env.BLOB
+      ? {
+          put: async ({ body, contentType, extension }) => {
+            const key = `generations/${definition.productFamily}/${organizationId}/${user.id}/${crypto.randomUUID()}.${extension}`;
+            return await putPublicObject(c.env, {
+              key,
+              body,
+              contentType,
+              customMetadata: {
+                userId: user.id,
+                organizationId,
+                model: request.model,
+                source: "generate-music",
+              },
+            });
+          },
+        }
+      : undefined;
+
+    const normalized = await audioProvider.generate({
+      ...request,
+      productFamily: definition.productFamily,
+      apiKeys,
+      storage,
+    });
 
     await reservation.reconcile(cost.totalCost);
     chargeSettled = true;
@@ -456,7 +223,7 @@ app.post("/", async (c) => {
     const generation = await generationsService.create({
       organization_id: user.organization_id,
       user_id: user.id,
-      type: "music",
+      type: definition.productFamily,
       model: request.model,
       provider: definition.provider,
       prompt: request.prompt,
@@ -467,12 +234,12 @@ app.post("/", async (c) => {
         raw: normalized.raw,
       },
       status: "completed",
-      storage_url: normalized.music.url,
+      storage_url: normalized.audio.url,
       thumbnail_url: null,
-      file_size: normalized.music.file_size
-        ? BigInt(normalized.music.file_size)
+      file_size: normalized.audio.file_size
+        ? BigInt(normalized.audio.file_size)
         : undefined,
-      mime_type: normalized.music.content_type ?? "audio/mpeg",
+      mime_type: normalized.audio.content_type ?? "audio/mpeg",
       parameters: {
         durationSeconds,
         hasLyrics: Boolean(request.lyrics),
@@ -495,7 +262,7 @@ app.post("/", async (c) => {
       id: generation.id,
       requestId: normalized.requestId,
       status: normalized.status ?? "completed",
-      music: normalized.music,
+      music: normalized.audio,
       cost,
     });
   } catch (error) {

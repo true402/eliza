@@ -14,8 +14,8 @@ export {
   providerForPricingCandidate,
 } from "./ai-pricing/dimensions";
 export {
+  calculateAudioGenerationCostFromCatalog,
   calculateImageGenerationCostFromCatalog,
-  calculateMusicGenerationCostFromCatalog,
   calculateSTTCostFromCatalog,
   calculateTextCostFromCatalog,
   calculateTTSCostFromCatalog,

@@ -534,7 +534,11 @@ export class SubAgentRouter extends Service {
     return this.bestResultForOrigin.get(originKey);
   }
 
-  /** Keep the LONGEST non-empty result for an origin (full 479001600 wins over truncated 479). */
+  /** Keep the LONGEST non-empty result for an origin (full 479001600 wins over
+   *  truncated 479). Longest-wins presumes every recorded result is relayable —
+   *  handleEvent gates verify-FAILED completions out upstream
+   *  (captureOriginResultForCompletion) so a failed build's verbose narration
+   *  can never shadow a successful retry's shorter answer. */
   recordOriginResult(
     originKey: string,
     result: { text: string; deliverable?: string },
@@ -555,19 +559,31 @@ export class SubAgentRouter extends Service {
   /**
    * Capture a completed task's deliverable for its origin BEFORE any early
    * return (verify-retry handoff, stale-continuation suppression, lineage
-   * dedupe). Those paths return before the main recordOriginResult call
-   * further down, so without this bestResultFor() is undefined when the spawn
-   * cap later fires — a real finished deliverable is lost and the user sees a
-   * generic cap message instead of the answer. recordOriginResult is monotonic
-   * (longest-wins), so recording here AND later is always safe. Keys exactly
-   * like the main call site (#8875).
+   * dedupe). Those paths return before the main capture further down, so
+   * without this bestResultFor() is undefined when the spawn cap later fires —
+   * a real finished deliverable is lost and the user sees a generic cap
+   * message instead of the answer. Keys exactly like tasks.ts's
+   * spawnOriginKey derivation (#8875).
+   *
+   * EXCEPT verify-FAILED completions (`deadUrls` non-empty): the router
+   * itself just judged that build incomplete, so its narration — stamped with
+   * the dead-URL annotation, which systematically out-lengths a clean success
+   * text — is not a deliverable. Recording it would let longest-wins retain
+   * the failure over the successful retry's shorter completion, and the spawn
+   * cap would then relay the failed build (planner-only verification
+   * directive included) verbatim to the user as the final answer.
+   * Longest-wins is only monotonic for results that are actually relayable;
+   * a known-failed completion is skipped, and the cap's honest "attempted N
+   * times" fallback covers the case where nothing clean ever lands.
    */
   private captureOriginResultForCompletion(
     origin: OriginInfo,
     session: SessionInfo,
     text: string,
     deliverable: string | undefined,
+    deadUrls: readonly DeadUrl[],
   ): void {
+    if (deadUrls.length > 0) return;
     const originResultKey =
       origin.parentConnectorMessageId ?? origin.spawnRootMessageId;
     if (!originResultKey) return;
@@ -1137,6 +1153,7 @@ export class SubAgentRouter extends Service {
           session,
           text,
           deliverable,
+          deadUrls,
         );
         rollbackRoundTrip();
         return;
@@ -1152,6 +1169,7 @@ export class SubAgentRouter extends Service {
           session,
           text,
           deliverable,
+          deadUrls,
         );
         rollbackRoundTrip();
         return;
@@ -1198,6 +1216,7 @@ export class SubAgentRouter extends Service {
           session,
           text,
           deliverable,
+          deadUrls,
         );
         rollbackRoundTrip();
         return;
@@ -1223,22 +1242,18 @@ export class SubAgentRouter extends Service {
       text = `${header}\n${deliverable}`;
     }
     if (event === "task_complete") {
-      // Remember the best (longest) result for this root origin so the spawn
-      // cap (tasks.ts) can relay it instead of re-spawning when a weak model's
-      // later completion for the SAME user request comes back truncated/blocked.
-      // Key on the stable root id — the connector message id when present, else
-      // the user message id the router stamps onto each synthetic re-spawn
-      // inbound as `spawnRootMessageId` (dashboard/web has no connector id).
-      // This MUST match tasks.ts's `spawnOriginKey` derivation so record +
-      // enforce agree on every transport (#8875).
-      const originResultKey =
-        origin.parentConnectorMessageId ?? origin.spawnRootMessageId;
-      if (originResultKey) {
-        this.recordOriginResult(`${originResultKey}\0${session.agentType}`, {
-          text,
-          deliverable,
-        });
-      }
+      // Remember the best (longest) CLEAN result for this root origin so the
+      // spawn cap (tasks.ts) can relay it instead of re-spawning when a weak
+      // model's later completion for the SAME user request comes back
+      // truncated/blocked. Key contract (#8875) and the verify-failed gate
+      // live in captureOriginResultForCompletion.
+      this.captureOriginResultForCompletion(
+        origin,
+        session,
+        text,
+        deliverable,
+        deadUrls,
+      );
       // Strip the planner-only `[sub-agent: …]` header before previewing so
       // the notification body shows the actual result (e.g. "PR opened"),
       // not the relay/do-not-respawn directive. The header can now be long

@@ -1387,8 +1387,52 @@ async function runScenarioCleanups(
   return failures;
 }
 
+/**
+ * Duck-typed slice of core's TrajectoriesService used to give each runner
+ * turn a real trajectory + step, mirroring the production seam.
+ */
+interface TurnTrajectoryService {
+  startTrajectory: (
+    agentId: string,
+    options: Record<string, unknown>,
+  ) => Promise<string>;
+  startStep: (
+    trajectoryId: string,
+    envState: Record<string, unknown>,
+  ) => string;
+  endTrajectory: (
+    stepIdOrTrajectoryId: string,
+    status: "completed" | "error" | "timeout" | "terminated",
+  ) => Promise<void>;
+  isEnabled?: () => boolean;
+}
+
+function resolveTurnTrajectoryService(
+  runtime: AgentRuntime,
+): TurnTrajectoryService | null {
+  const candidate = runtime.getService("trajectories") as unknown;
+  if (
+    candidate &&
+    typeof candidate === "object" &&
+    "startTrajectory" in candidate &&
+    typeof candidate.startTrajectory === "function" &&
+    "startStep" in candidate &&
+    typeof candidate.startStep === "function" &&
+    "endTrajectory" in candidate &&
+    typeof candidate.endTrajectory === "function"
+  ) {
+    const service = candidate as TurnTrajectoryService;
+    if (typeof service.isEnabled === "function" && !service.isEnabled()) {
+      return null;
+    }
+    return service;
+  }
+  return null;
+}
+
 async function executeMessageTurn(
   runtime: AgentRuntime,
+  scenarioId: string,
   turn: ScenarioTurn,
   room: ScenarioRoomDefinition,
   currentNow: Date,
@@ -1440,6 +1484,39 @@ async function executeMessageTurn(
     );
   }
 
+  // Mirror the production trajectories seam (core features/trajectories
+  // MESSAGE_RECEIVED handler): the runner dispatches straight into
+  // messageService.handleMessage, so nothing else mints the trajectory + step
+  // that runtime.recordLlmCall requires before it logs model calls and their
+  // purposes. Without this, `modelCallOccurred` final checks can never
+  // observe a purpose under the runner — even when the capability's
+  // optimized-prompt consumer genuinely fired (#11383). The trajectory row is
+  // tagged with the scenario id so scenario-scoped final checks list exactly
+  // this run's trajectories.
+  const trajectories = resolveTurnTrajectoryService(runtime);
+  let turnTrajectoryId: string | null = null;
+  if (trajectories) {
+    turnTrajectoryId = await trajectories.startTrajectory(runtime.agentId, {
+      source: room.source ?? "scenario",
+      scenarioId,
+      roomId: room.roomId,
+      entityId: room.userId,
+      metadata: { scenarioId, turnName: turn.name },
+    });
+    const trajectoryStepId = trajectories.startStep(turnTrajectoryId, {
+      timestamp: Date.now(),
+      agentBalance: 0,
+      agentPoints: 0,
+      agentPnL: 0,
+      openPositions: 0,
+    });
+    message.metadata = {
+      ...(message.metadata ?? { type: "message" }),
+      trajectoryId: turnTrajectoryId,
+      trajectoryStepId,
+    } as Memory["metadata"];
+  }
+
   const startedAt = Date.now();
   let responseText = "";
   const callback = async (content: { text?: string }): Promise<unknown[]> => {
@@ -1449,14 +1526,27 @@ async function executeMessageTurn(
   const timeoutMs =
     typeof turn.timeoutMs === "number" ? turn.timeoutMs : turnTimeoutMs;
 
-  const result = await withTimeout(
-    messageService.handleMessage(runtime, message, callback, {}),
-    timeoutMs,
-    `handleMessage(${turn.name})`,
-  );
+  let turnOutcome: "completed" | "error" | "timeout" = "completed";
+  try {
+    const result = await withTimeout(
+      messageService.handleMessage(runtime, message, callback, {}),
+      timeoutMs,
+      `handleMessage(${turn.name})`,
+    );
 
-  if (!responseText && result?.responseContent?.text) {
-    responseText = result.responseContent.text;
+    if (!responseText && result?.responseContent?.text) {
+      responseText = result.responseContent.text;
+    }
+  } catch (err) {
+    turnOutcome =
+      err instanceof Error && /timed out/i.test(err.message)
+        ? "timeout"
+        : "error";
+    throw err;
+  } finally {
+    if (trajectories && turnTrajectoryId) {
+      await trajectories.endTrajectory(turnTrajectoryId, turnOutcome);
+    }
   }
 
   // Let completed events settle.
@@ -2258,6 +2348,7 @@ export async function runScenario(
                       actionsCalled: [],
                       ...(await executeMessageTurn(
                         runtime,
+                        scenario.id,
                         turn,
                         resolveTurnRoom(turn, rooms),
                         logicalNow,

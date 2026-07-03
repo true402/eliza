@@ -34,7 +34,6 @@ import { estimateTokens } from "@/lib/pricing";
 import * as languageModelActual from "@/lib/providers/language-model";
 import * as aiBillingActual from "@/lib/services/ai-billing";
 import * as aiBillingRecordsActual from "@/lib/services/ai-billing-records";
-import * as teamCredentialPoolActual from "@/lib/services/team-credential-pool";
 
 // The REAL settler — explicitly NOT mocked. This is the component under test.
 import { createCreditReservationSettler } from "@/lib/utils/credit-reservation";
@@ -106,22 +105,11 @@ mock.module("@/lib/services/ai-billing-records", () => ({
   },
 }));
 
-const poolRecordUse = mock(async () => {});
-const poolRecordProviderFailure = mock(async () => {});
-mock.module("@/lib/services/team-credential-pool", () => ({
-  ...teamCredentialPoolActual,
-  getTeamPoolRegistry: () => ({
-    recordUse: poolRecordUse,
-    recordProviderFailure: poolRecordProviderFailure,
-  }),
-}));
-
 // Import the route AFTER the mocks so it binds to the stubs.
-const { __billingBranchTestHooks, __streamingCreditTestHooks } = await import(
+const { __streamingCreditTestHooks } = await import(
   "../v1/chat/completions/route"
 );
 const { handleStreamingRequest } = __streamingCreditTestHooks;
-const { shouldUsePooledNoopReservation } = __billingBranchTestHooks;
 
 afterAll(() => {
   mock.module("ai", () => aiActual);
@@ -130,10 +118,6 @@ afterAll(() => {
   mock.module(
     "@/lib/services/ai-billing-records",
     () => aiBillingRecordsActual,
-  );
-  mock.module(
-    "@/lib/services/team-credential-pool",
-    () => teamCredentialPoolActual,
   );
 });
 
@@ -190,18 +174,7 @@ const REQUEST = {
 /** Invoke handleStreamingRequest with the test's settler and a fixed shape. */
 function callStreaming(
   settleReservation: (actualCost: number) => Promise<unknown> | unknown,
-  options: {
-    affiliateCode?: string | null;
-    estimatedInputTokens?: number;
-    pooledCredential?: {
-      organizationId: string;
-      credentialId: string;
-      providerId: "openai-api" | "anthropic-api" | "cerebras-api";
-      apiKey: string;
-      label: string;
-    } | null;
-    signal?: AbortSignal;
-  } = {},
+  options: { estimatedInputTokens?: number; signal?: AbortSignal } = {},
 ) {
   return handleStreamingRequest(
     MODEL,
@@ -210,7 +183,7 @@ function callStreaming(
     REQUEST,
     { id: USER, organization_id: ORG },
     null,
-    options.affiliateCode ?? null,
+    null,
     "idem-1",
     "req-1",
     null,
@@ -223,7 +196,6 @@ function callStreaming(
     undefined,
     {} as never,
     "gateway" as never,
-    options.pooledCredential ?? null,
   );
 }
 
@@ -232,8 +204,6 @@ beforeEach(() => {
   billUsage.mockClear();
   recordUsageAnalytics.mockClear();
   aiBillingRecord.mockClear();
-  poolRecordUse.mockClear();
-  poolRecordProviderFailure.mockClear();
   streamTextImpl = null;
 });
 
@@ -473,87 +443,6 @@ describe("streaming chat — client abort settles delivered usage", () => {
 });
 
 describe("streaming chat — success settles once, no double-refund", () => {
-  test("pooled BYO key does not bypass monetized app billing reservation", () => {
-    const pooledCredential = {
-      organizationId: ORG,
-      credentialId: "pooled-credential-1",
-      providerId: "openai-api" as const,
-      apiKey: "sk-pooled",
-      label: "Team OpenAI key",
-    };
-
-    expect(
-      shouldUsePooledNoopReservation({
-        pooledCredential,
-        useMonetizedAppBilling: false,
-      }),
-    ).toBe(true);
-    expect(
-      shouldUsePooledNoopReservation({
-        pooledCredential,
-        useMonetizedAppBilling: true,
-      }),
-    ).toBe(false);
-  });
-
-  test("pooled BYO-key success suppresses affiliate markup while recording pool use", async () => {
-    const settle = mock(async () => null);
-    let onFinishPromise: Promise<unknown> | undefined;
-
-    streamTextImpl = (config) => {
-      const onFinish = config.onFinish as
-        | ((event: {
-            text: string;
-            usage: {
-              inputTokens: number;
-              outputTokens: number;
-              totalTokens: number;
-            };
-          }) => Promise<unknown> | unknown)
-        | undefined;
-
-      return {
-        fullStream: (async function* () {
-          yield { type: "text-delta", id: "text-1", text: "pooled ok" };
-          onFinishPromise = Promise.resolve(
-            onFinish?.({
-              text: "pooled ok",
-              usage: { inputTokens: 2, outputTokens: 3, totalTokens: 5 },
-            }),
-          );
-          yield { type: "finish", finishReason: "stop" };
-        })(),
-      };
-    };
-
-    const res = await callStreaming(settle, {
-      affiliateCode: "SHOULD_NOT_PAY",
-      pooledCredential: {
-        organizationId: ORG,
-        credentialId: "pooled-credential-1",
-        providerId: "openai-api",
-        apiKey: "sk-pooled",
-        label: "Team OpenAI key",
-      },
-    });
-    const body = await res.text();
-    expect(onFinishPromise).toBeDefined();
-    await onFinishPromise;
-
-    expect(body).toContain("pooled ok");
-    expect(billUsage).toHaveBeenCalledTimes(1);
-    expect(
-      (billUsage.mock.calls[0][0] as { affiliateCode?: string | null })
-        .affiliateCode,
-    ).toBe(null);
-    expect(settle).toHaveBeenCalledTimes(1);
-    expect(poolRecordUse).toHaveBeenCalledWith({
-      organizationId: ORG,
-      credentialId: "pooled-credential-1",
-      userId: USER,
-    });
-  });
-
   test("settler reconciles to actual cost exactly once; a stray onError cannot re-refund", async () => {
     const ledger = makeLedgerReservation(100, 0.015);
     const settle = createCreditReservationSettler(ledger.reservation);

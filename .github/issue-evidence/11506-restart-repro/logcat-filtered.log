@@ -1,0 +1,52 @@
+--------- beginning of system
+07-02 15:36:27.860 I/ActivityManager(24924): Killing 18703:com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:7/u0a152i-9000 (adj 905): remove task
+07-02 15:36:27.860 I/ActivityManager(24924): Killing 7289:com.android.chrome/u0a152 (adj 905): remove task
+07-02 15:36:28.039 W/ActivityManager(24924): Scheduling restart of crashed service com.android.chrome/org.chromium.content.app.SandboxedProcessService0:7 in 1000ms for connection
+07-02 15:36:28.105 W/ActivityManager(24924): setHasOverlayUi called on unknown pid: 7289
+07-02 15:41:15.171 I/ActivityManager(24924): Force stopping ai.elizaos.app appid=10371 user=0: clear data
+07-02 15:41:15.175 I/ActivityManager(24924): Killing 18782:ai.elizaos.app/u0a371 (adj 200): stop ai.elizaos.app due to clear data
+07-02 15:41:15.182 I/ActivityManager(24924): Killing 18824:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0a371i50 (adj 0): isolated not needed
+07-02 15:41:15.218 I/ActivityManager(24924): Force stopping ai.elizaos.app appid=10371 user=0: clearApplicationUserData
+07-02 15:41:15.554 I/ActivityManager(24924): Start proc 26205:com.android.chrome/u0a152 for broadcast {com.android.chrome/org.chromium.chrome.browser.browserservices.InstalledWebappBroadcastReceiver}
+07-02 15:41:15.685 W/ActivityManager(24924): setHasOverlayUi called on unknown pid: 18782
+07-02 15:41:15.754 I/ActivityManager(24924): Process PhantomProcessRecord {1cce3e2 18957:18782:libeliza_ld_musl_aarch64.so/u0a371} died
+07-02 15:41:16.051 I/ActivityManager(24924): Start proc 26290:com.android.vending:background/u0a114 for broadcast {com.android.vending/com.google.android.finsky.appcontentservice.engage.broadcastreceiver.EngagePackageActionReceiver}
+07-02 15:41:16.157 W/ActivityManager(24924): registerReceiverWithFeature: no app for null
+07-02 15:41:16.204 I/ActivityManager(24924): Start proc 26306:ai.elizaos.app/u0a371 for next-top-activity {ai.elizaos.app/ai.elizaos.app.MainActivity}
+07-02 15:41:16.557 I/ActivityManager(24924): Start proc 26354:com.google.android.apps.photos/u0a184 for broadcast {com.google.android.apps.photos/com.google.android.libraries.social.mediastoresync.reset.impl.MediaStoreClearedReceiver}
+07-02 15:41:16.795 I/ActivityManager(24924): Start proc 26394:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0i51 for  {ai.elizaos.app/org.chromium.content.app.SandboxedProcessService0:0}
+07-02 15:41:16.902 I/ActivityManager(24924): Start proc 26435:com.google.android.documentsui/u0a73 for broadcast {com.google.android.documentsui/com.android.documentsui.PackageReceiver}
+07-02 15:41:17.019 I/ActivityManager(24924): Start proc 26467:com.android.externalstorage/u0a63 for content provider {com.android.externalstorage/com.android.externalstorage.ExternalStorageProvider}
+07-02 15:41:17.065 I/ActivityManager(24924): Background started FGS: Allowed [callingPackage: ai.elizaos.app; callingUid: 10371; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=app.eliza.action.START_AGENT xflg=0x4 cmp=ai.elizaos.app/.ElizaAgentService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:35; callerTargetSdkVersion:35; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+07-02 15:41:17.515 I/ActivityManager(24924): Start proc 26573:com.google.android.apps.docs/u0a161 for content provider {com.google.android.apps.docs/com.google.android.apps.docs.common.storagebackend.StorageBackendContentProvider}
+07-02 15:41:19.317 I/ActivityManager(24924): Start proc 26858:com.google.android.webview:webview_service/u0a151 for service {com.google.android.webview/org.chromium.android_webview.services.VariationsSeedServer}
+07-02 15:41:19.956 I/ActivityManager(24924): Start proc 26914:com.android.chrome:privileged_process0/u0a152 for service {com.android.chrome/org.chromium.content.app.PrivilegedProcessService0}
+07-02 15:41:21.862 W/ActivityManager(24924): Slow operation: 98ms so far, now at startProcess: returned from zygote!
+07-02 15:41:21.862 W/ActivityManager(24924): Slow operation: 98ms so far, now at startProcess: done updating battery stats
+07-02 15:41:21.862 W/ActivityManager(24924): Slow operation: 98ms so far, now at startProcess: building log message
+07-02 15:41:21.862 I/ActivityManager(24924): Start proc 27046:com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0ai0 for  {com.android.chrome/org.chromium.content.app.SandboxedProcessService0:0}
+07-02 15:41:21.862 W/ActivityManager(24924): Slow operation: 98ms so far, now at startProcess: starting to update pids map
+07-02 15:41:21.862 W/ActivityManager(24924): Slow operation: 98ms so far, now at startProcess: done updating pids map
+07-02 15:43:23.284 I/ActivityManager(24924): Force stopping ai.elizaos.app appid=10371 user=0: from pid 27876
+07-02 15:43:23.286 I/ActivityManager(24924): Killing 26306:ai.elizaos.app/u0a371 (adj 0): stop ai.elizaos.app due to from pid 27876
+07-02 15:43:23.301 I/ActivityManager(24924): Killing 26394:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0a371i51 (adj 0): isolated not needed
+07-02 15:43:23.369 W/ActivityManager(24924): setHasOverlayUi called on unknown pid: 26306
+07-02 15:43:23.369 W/ActivityManager(24924): pid 24924 system sent binder code 2 with flags 1 and got error -32
+07-02 15:43:23.444 I/ActivityManager(24924): Process PhantomProcessRecord {8a673e4 26877:26306:libeliza_ld_musl_aarch64.so/u0a371} died
+07-02 15:43:23.727 W/ActivityManager(24924): pid 24924 system sent binder code 7 with flags 1 and got error -32
+07-02 15:43:25.810 W/ActivityManager(24924): registerReceiverWithFeature: no app for null
+07-02 15:43:25.850 I/ActivityManager(24924): Start proc 27906:ai.elizaos.app/u0a371 for next-top-activity {ai.elizaos.app/ai.elizaos.app.MainActivity}
+07-02 15:43:26.270 I/ActivityManager(24924): Background started FGS: Allowed [callingPackage: ai.elizaos.app; callingUid: 10371; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { xflg=0x4 cmp=ai.elizaos.app/.GatewayConnectionService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:35; callerTargetSdkVersion:35; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+07-02 15:43:26.275 I/ActivityManager(24924): Background started FGS: Allowed [callingPackage: ai.elizaos.app; callingUid: 10371; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { act=app.eliza.action.START_AGENT xflg=0x4 cmp=ai.elizaos.app/.ElizaAgentService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:35; callerTargetSdkVersion:35; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+07-02 15:43:26.358 I/ActivityManager(24924): Start proc 27946:com.google.android.webview:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0i52 for  {ai.elizaos.app/org.chromium.content.app.SandboxedProcessService0:0}
+07-02 15:43:26.658 I/ActivityManager(24924): Background started FGS: Allowed [callingPackage: ai.elizaos.app; callingUid: 10371; uidState: TOP ; uidBFSL: [BFSL]; intent: Intent { cmp=ai.elizaos.app/.GatewayConnectionService }; code:PROC_STATE_TOP; tempAllowListReason:<null>; allowWiu:12; targetSdkVersion:35; callerTargetSdkVersion:35; startForegroundCount:0; bindFromPackage:null: isBindService:false]
+07-02 15:43:27.876 I/ActivityManager(24924): Process PhantomProcessRecord {bcd6455 28045:27906:sleep/u0a371} died
+07-02 15:43:27.881 I/ActivityManager(24924): Process PhantomProcessRecord {9c3ce6a 28037:27906:sh/u0a371} died
+07-02 15:44:44.014 I/ActivityManager(24924): Start proc 28527:com.google.android.partnersetup/u0a96 for service {com.google.android.partnersetup/com.google.android.partnersetup.InstalledAppJobService}
+07-02 15:44:44.150 I/ActivityManager(24924): Start proc 28545:com.google.android.apps.turbo:aab/u0a148 for service {com.google.android.apps.turbo/com.google.android.libraries.smartbattery.appusage.library.InferAppBucketsJob}
+07-02 15:44:44.703 I/ActivityManager(24924): Start proc 28571:com.android.settings/1000 for content provider {com.android.settings/com.google.android.settings.fuelgauge.CommandContentProvider}
+07-02 15:45:10.001 I/ActivityManager(24924): Start proc 28784:com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:1/u0ai1 for  {com.android.chrome/org.chromium.content.app.SandboxedProcessService0:1}
+07-02 15:45:10.803 I/ActivityManager(24924): Start proc 28816:com.android.providers.partnerbookmarks/u0a80 for content provider {com.android.providers.partnerbookmarks/com.android.providers.partnerbookmarks.PartnerBookmarksProvider}
+07-02 15:45:27.863 I/ActivityManager(24924): Start proc 28927:com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:2/u0ai2 for  {com.android.chrome/org.chromium.content.app.SandboxedProcessService0:2}
+07-02 15:45:27.949 I/ActivityManager(24924): Killing 28927:com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:2/u0a152i-8998 (adj 0): isolated not needed
+07-02 15:45:41.476 I/ActivityManager(24924): Killing 27046:com.android.chrome:sandboxed_process0:org.chromium.content.app.SandboxedProcessService0:0/u0a152i-9000 (adj 0): isolated not needed

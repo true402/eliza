@@ -6576,12 +6576,12 @@ export const allActionsSpec = {
 		{
 			name: "INBOX",
 			description:
-				"Inbox: Gmail, Slack, Discord, Telegram, Signal, iMessage, WhatsApp. Merge recency feed and operate the persisted triage queue. Subactions: list, search, summarize, triage, reply, snooze, archive, approve.",
+				"Inbox: Gmail, Slack, Discord, Telegram, Signal, iMessage, WhatsApp. Merge recency feed and operate the persisted triage queue. Subactions: list, search, summarize, triage (AI-classify new messages into urgent / needs_reply / notify / info / ignore, then return the prioritized queue), reply, snooze, archive, approve.",
 			parameters: [
 				{
 					name: "action",
 					description:
-						"Inbox op: list | search | summarize | triage | reply | snooze | archive | approve.",
+						"Inbox op: list | search | summarize | triage (classify new messages with the AI triage classifier, then return the pending queue) | reply | snooze | archive | approve.",
 					required: false,
 					schema: {
 						type: "string",
@@ -6597,7 +6597,7 @@ export const allActionsSpec = {
 						],
 					},
 					descriptionCompressed:
-						"Inbox op: list | search | summarize | triage | reply | snooze | archive | approve.",
+						"Inbox op: list | search | summarize | triage (classify new msgs with the AI triage classifier, then return the pending queue) | reply | snooze | archive |...",
 				},
 				{
 					name: "platforms",
@@ -6679,9 +6679,32 @@ export const allActionsSpec = {
 					descriptionCompressed:
 						"Explicit owner confirmation for sending reply/approve.",
 				},
+				{
+					name: "classification",
+					description:
+						"Optional triage queue filter for persisted items: ignore | info | notify | needs_reply | urgent. When set on triage, reads the queue without classifying fresh messages.",
+					required: false,
+					schema: {
+						type: "string",
+						enum: ["ignore", "info", "notify", "needs_reply", "urgent"],
+					},
+					descriptionCompressed:
+						"Optional triage queue filter for persisted items: ignore | info | notify | needs_reply | urgent. When set on triage, reads the queue without classifying...",
+				},
+				{
+					name: "includeSnoozed",
+					description:
+						"When true, include snoozed triage queue entries in triage reads.",
+					required: false,
+					schema: {
+						type: "boolean",
+					},
+					descriptionCompressed:
+						"When true, include snoozed triage queue entries in triage reads.",
+				},
 			],
 			descriptionCompressed:
-				"INBOX list|search|summarize|triage|reply|snooze|archive|approve gmail|slack|discord|telegram|signal|imessage|whatsapp",
+				"INBOX list|search|summarize|triage(classify urgent/needs_reply/noise)|reply|snooze|archive|approve gmail|slack|discord|telegram|signal|imessage|whatsapp",
 			exampleCalls: [
 				{
 					user: "Use INBOX with the provided parameters.",
@@ -6697,6 +6720,8 @@ export const allActionsSpec = {
 							body: "example",
 							until: "example",
 							confirmed: false,
+							classification: "ignore",
+							includeSnoozed: false,
 						},
 					},
 				},

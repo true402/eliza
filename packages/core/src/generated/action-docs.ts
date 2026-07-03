@@ -3328,7 +3328,7 @@ export const allActionsSpec = {
 			parameters: [],
 			similes: ["PICK_UP", "GRAB", "GRASP_OBJECT"],
 			descriptionCompressed:
-				"Run the learned `pick_up` policy. Starts a policy. start with task='pick_up'. options: target_label (default 'red ball'), max_steps.",
+				"Run the learned `pick_up` policy. Starts a policy.start with task='pick_up'. options: target_label (default 'red ball'), max_steps.",
 		},
 		{
 			name: "AINEX_PLACE_DOWN",
@@ -3337,7 +3337,7 @@ export const allActionsSpec = {
 			parameters: [],
 			similes: ["PLACE_DOWN", "PUT_DOWN", "RELEASE", "DROP"],
 			descriptionCompressed:
-				"Run the learned `place_down` policy. Starts a policy. start with task='place_down'.",
+				"Run the learned `place_down` policy. Starts a policy.start with task='place_down'.",
 		},
 		{
 			name: "AINEX_RUN_ACTION_GROUP",
@@ -3346,7 +3346,7 @@ export const allActionsSpec = {
 			parameters: [],
 			similes: ["RUN_ACTION_GROUP", "PLAY_ACTION", "PLAY_ACTION_GROUP"],
 			descriptionCompressed:
-				"Play a named Hiwonder action group (pre-recorded multi-servo motion). Options: name (required, must match a key in the profile's actions. groups).",
+				"Play a named Hiwonder action group (pre-recorded multi-servo motion). Options: name (required, must match a key in the profile's actions.groups).",
 		},
 		{
 			name: "AINEX_RUN_RL",
@@ -3371,7 +3371,7 @@ export const allActionsSpec = {
 			parameters: [],
 			similes: ["SET_SERVO", "MOVE_SERVO", "MOVE_JOINT", "SET_JOINT"],
 			descriptionCompressed:
-				"Drive one or more AiNex servos to target pulse positions over a duration. Options: positions=[{id, position}], duration (seconds, default 0. 5).",
+				"Drive one or more AiNex servos to target pulse positions over a duration. Options: positions=[{id, position}], duration (seconds, default 0.5).",
 		},
 		{
 			name: "AINEX_SIDE_STEP_LEFT",
@@ -3416,7 +3416,7 @@ export const allActionsSpec = {
 			parameters: [],
 			similes: ["STOP", "HALT", "FREEZE", "EMERGENCY_STOP"],
 			descriptionCompressed:
-				"Stop the AiNex robot immediately. Sends walk. command:stop with preempt=true so any in-flight commands or active policy are cleared.",
+				"Stop the AiNex robot immediately. Sends walk.command:stop with preempt=true so any in-flight commands or active policy are cleared.",
 		},
 		{
 			name: "AINEX_TURN_LEFT",
@@ -3443,7 +3443,7 @@ export const allActionsSpec = {
 			parameters: [],
 			similes: ["WALK_BACKWARD", "MOVE_BACKWARD", "GO_BACK", "BACK_UP"],
 			descriptionCompressed:
-				"Start walking the AiNex robot backward. Sends walk. set+walk. command:start to the bridge. robot keeps walking until AINEX_STOP. Options: speed (1-4).",
+				"Start walking the AiNex robot backward. Sends walk.set+walk.command:start to the bridge. robot keeps walking until AINEX_STOP. Options: speed (1-4).",
 		},
 		{
 			name: "AINEX_WALK_FORWARD",
@@ -3452,7 +3452,7 @@ export const allActionsSpec = {
 			parameters: [],
 			similes: ["WALK_FORWARD", "MOVE_FORWARD", "GO_FORWARD"],
 			descriptionCompressed:
-				"Start walking the AiNex robot forward. Sends walk. set+walk. command:start to the bridge. the robot keeps walking until AINEX_STOP is issued. Options: speed...",
+				"Start walking the AiNex robot forward. Sends walk.set+walk.command:start to the bridge. the robot keeps walking until AINEX_STOP is issued. Options: speed...",
 		},
 		{
 			name: "AINEX_WAVE",
@@ -4008,7 +4008,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"For action=wait_for_url: substring or /regex/ to match the tab URL (e. g. callback?code=, or /\\/done$/).",
+						"For action=wait_for_url: substring or /regex/ to match the tab URL (e.g. callback?code=, or /\\/done$/).",
 				},
 				{
 					name: "pollIntervalMs",
@@ -4040,7 +4040,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"Required for action=autofill_login: registrable hostname, e. g. github. com.",
+						"Required for action=autofill_login: registrable hostname, e.g. github.com.",
 				},
 				{
 					name: "username",
@@ -4266,7 +4266,7 @@ export const allActionsSpec = {
 					schema: {
 						type: "string",
 					},
-					descriptionCompressed: "The domain to buy, e. g. yourbrand. com.",
+					descriptionCompressed: "The domain to buy, e.g. yourbrand.com.",
 				},
 				{
 					name: "appName",
@@ -4659,7 +4659,7 @@ export const allActionsSpec = {
 					schema: {
 						type: "string",
 					},
-					descriptionCompressed: "The domain to check, e. g. yourbrand. com.",
+					descriptionCompressed: "The domain to check, e.g. yourbrand.com.",
 				},
 				{
 					name: "appName",
@@ -4845,7 +4845,7 @@ export const allActionsSpec = {
 						},
 					},
 					descriptionCompressed:
-						"Multi-point polyline [[x, y],. ] (≥2 points) for drag. traces every waypoint with the button held. Supersedes startCoordinate/coordinate when present.",
+						"Multi-point polyline [[x,y],.] (≥2 points) for drag. traces every waypoint with the button held. Supersedes startCoordinate/coordinate when present.",
 				},
 				{
 					name: "text",
@@ -4868,7 +4868,7 @@ export const allActionsSpec = {
 						},
 					},
 					descriptionCompressed:
-						"Modifier keys for click_with_modifiers, e. g. ['cmd', 'shift'] or ['ctrl'].",
+						"Modifier keys for click_with_modifiers, e.g. ['cmd','shift'] or ['ctrl'].",
 				},
 				{
 					name: "key",
@@ -4946,7 +4946,7 @@ export const allActionsSpec = {
 						enum: ["logical", "backing"],
 					},
 					descriptionCompressed:
-						"Coordinate space: logical default matches display. bounds. backing raw retina pixels macOS only.",
+						"Coordinate space: logical default matches display.bounds. backing raw retina pixels macOS only.",
 				},
 				{
 					name: "approvalId",
@@ -5082,7 +5082,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"Natural-language goal, e. g. click save button in dialog.",
+						"Natural-language goal, e.g. click save button in dialog.",
 				},
 				{
 					name: "maxSteps",
@@ -6313,7 +6313,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"Lookback window. ISO date or relative (e. g. '14d', '4w'). Default '14d'.",
+						"Lookback window. ISO date or relative (e.g. '14d', '4w'). Default '14d'.",
 				},
 				{
 					name: "budget",
@@ -7410,7 +7410,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"For key - the key or chord to press (e. g. 'enter', 'ctrl+s').",
+						"For key - the key or chord to press (e.g. 'enter', 'ctrl+s').",
 				},
 				{
 					name: "direction",
@@ -7887,7 +7887,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"market only: Hyperliquid coin/asset symbol (e. g. BTC).",
+						"market only: Hyperliquid coin/asset symbol (e.g. BTC).",
 				},
 				{
 					name: "side",
@@ -8336,7 +8336,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"ScheduledTaskSubject. kind: entity|relationship|thread|document|calendar_event|self.",
+						"ScheduledTaskSubject.kind: entity|relationship|thread|document|calendar_event|self.",
 				},
 				{
 					name: "subjectId",
@@ -8346,7 +8346,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"ScheduledTaskSubject. id paired with subjectKind.",
+						"ScheduledTaskSubject.id paired with subjectKind.",
 				},
 				{
 					name: "ownerVisibleOnly",
@@ -8421,7 +8421,7 @@ export const allActionsSpec = {
 						type: "object",
 					},
 					descriptionCompressed:
-						"create-only: output destination/target, e. g. channel -> in_app:<roomId>.",
+						"create-only: output destination/target, e.g. channel -> in_app:<roomId>.",
 				},
 				{
 					name: "pipeline",
@@ -9040,7 +9040,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"Heuristic backend guess (elizaos, pi-agent, opencode, codex, or claude) for create/spawn_agent/control. resume. This is a weak hint - it loses to the...",
+						"Heuristic backend guess (elizaos, pi-agent, opencode, codex, or claude) for create/spawn_agent/control.resume. This is a weak hint - it loses to the operator...",
 				},
 				{
 					name: "appMonetized",
@@ -9051,7 +9051,7 @@ export const allActionsSpec = {
 						type: "boolean",
 					},
 					descriptionCompressed:
-						"Set true when user wants the app to EARN MONEY/charge for access - e. g. 'people pay $1 to chat with X', 'charge per msg', 'a paid app', 'monetized', a...",
+						"Set true when user wants the app to EARN MONEY/charge for access - e.g. 'people pay $1 to chat with X', 'charge per msg', 'a paid app', 'monetized', a...",
 				},
 				{
 					name: "requestedBackend",
@@ -9063,7 +9063,7 @@ export const allActionsSpec = {
 						enum: ["elizaos", "pi-agent", "opencode", "codex", "claude"],
 					},
 					descriptionCompressed:
-						"Set ONLY when user EXPLICITLY named a coding backend for THIS task (e. g. 'use codex', 'have claude build it') - one of elizaos, pi-agent, opencode, codex...",
+						"Set ONLY when user EXPLICITLY named a coding backend for THIS task (e.g. 'use codex', 'have claude build it') - one of elizaos, pi-agent, opencode, codex...",
 				},
 				{
 					name: "taskComplexity",
@@ -9733,7 +9733,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"Name of the tau-bench tool to invoke (e. g. get_order_details, search_flights, cancel_order).",
+						"Name of the tau-bench tool to invoke (e.g. get_order_details, search_flights, cancel_order).",
 				},
 				{
 					name: "arguments",
@@ -9825,7 +9825,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"Imperative form, e. g. 'Add tests' (create/update).",
+						"Imperative form, e.g. 'Add tests' (create/update).",
 				},
 				{
 					name: "activeForm",
@@ -9836,7 +9836,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"Present-continuous form, e. g. 'Adding tests' (create/update).",
+						"Present-continuous form, e.g. 'Adding tests' (create/update).",
 				},
 				{
 					name: "status",
@@ -10078,7 +10078,7 @@ export const allActionsSpec = {
 						default: "auto",
 					},
 					descriptionCompressed:
-						"Invoke mode: script runs executable, guidance loads SKILL. md, auto picks by scripts.",
+						"Invoke mode: script runs executable, guidance loads SKILL.md, auto picks by scripts.",
 				},
 				{
 					name: "script",
@@ -10371,7 +10371,7 @@ export const allActionsSpec = {
 						enum: ["owner", "external", "e164"],
 					},
 					descriptionCompressed:
-						"owner escalation env number | external RelationshipStore lookup + allow-list | e164 raw E. 164 phoneNumber.",
+						"owner escalation env number | external RelationshipStore lookup + allow-list | e164 raw E.164 phoneNumber.",
 				},
 				{
 					name: "phoneNumber",
@@ -10381,7 +10381,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"recipientKind=e164: destination E. 164 phoneNumber.",
+						"recipientKind=e164: destination E.164 phoneNumber.",
 				},
 				{
 					name: "recipient",
@@ -10392,7 +10392,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"recipientKind=external: contact name or E. 164. names via RelationshipStore.",
+						"recipientKind=external: contact name or E.164. names via RelationshipStore.",
 				},
 				{
 					name: "bodyText",
@@ -10497,7 +10497,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"For select_option - the option name used as select_option[name, value].",
+						"For select_option - the option name used as select_option[name,value].",
 				},
 				{
 					name: "option_value",
@@ -10508,7 +10508,7 @@ export const allActionsSpec = {
 						type: "string",
 					},
 					descriptionCompressed:
-						"For select_option - the option value used as select_option[name, value].",
+						"For select_option - the option value used as select_option[name,value].",
 				},
 			],
 			descriptionCompressed:
@@ -11082,7 +11082,7 @@ export const allActionsSpec = {
 						type: "number",
 					},
 					descriptionCompressed:
-						"Panel scale multiplier - e. g. 1. 5 for bigger, 0. 6 for smaller, 1. 0 default.",
+						"Panel scale multiplier - e.g. 1.5 for bigger, 0.6 for smaller, 1.0 default.",
 				},
 				{
 					name: "distance",
@@ -11093,7 +11093,7 @@ export const allActionsSpec = {
 						type: "number",
 					},
 					descriptionCompressed:
-						"Panel distance from user in meters - e. g. 0. 8 for closer, 2. 5 for farther, 1. 5 default.",
+						"Panel distance from user in meters - e.g. 0.8 for closer, 2.5 for farther, 1.5 default.",
 				},
 				{
 					name: "fullscreen",
@@ -11137,7 +11137,7 @@ export const allActionsSpec = {
 				},
 			],
 			descriptionCompressed:
-				"Resizes or repositions the active XR view panel. Set scale (0. 5 = half, 1. 0 = default, 2. 0 = double), distance in meters (1. 5 = default, smaller =...",
+				"Resizes or repositions the active XR view panel. Set scale (0.5 = half, 1.0 = default, 2.0 = double), distance in meters (1.5 = default, smaller = closer)...",
 		},
 		{
 			name: "XR_SWITCH_VIEW",

@@ -72,12 +72,15 @@ export async function getGoogleCapabilityStatus(
   };
 }
 
+// The read gate (runLifeConnectedQuery) checks Google calendar read AND the
+// Apple-native calendar probe before refusing, so the refusal names both
+// remedies rather than the Google connector alone.
 export function calendarReadUnavailableMessage(
   google: GoogleCapabilityStatus,
 ): string {
   return google.connected
-    ? "Google Calendar access is limited. Reconnect Google in LifeOps settings to grant calendar access."
-    : "Google Calendar is not connected. Connect Google in LifeOps settings to use calendar actions.";
+    ? "Calendar access is not available: Google Calendar access is limited. Reconnect Google in LifeOps settings to grant calendar access, or grant Apple Calendar access."
+    : "Calendar access is not available: Google Calendar is not connected. Connect Google in LifeOps settings, or grant Apple Calendar access, to use calendar actions.";
 }
 
 export function calendarWriteUnavailableMessage(

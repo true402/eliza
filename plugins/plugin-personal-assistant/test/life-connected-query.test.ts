@@ -241,7 +241,7 @@ describe("query_calendar_today availability", () => {
     const result = await run(service, "query_calendar_today");
     expect(result.success).toBe(false);
     expect(result.text).toBe(
-      "Google Calendar is not connected. Connect Google in LifeOps settings to use calendar actions.",
+      "Calendar access is not available: Google Calendar is not connected. Connect Google in LifeOps settings, or grant Apple Calendar access, to use calendar actions.",
     );
     expect(service.getCalendarFeed).not.toHaveBeenCalled();
   });
@@ -333,7 +333,7 @@ describe("query_calendar_next availability", () => {
     const result = await run(service, "query_calendar_next");
     expect(result.success).toBe(false);
     expect(result.text).toBe(
-      "Google Calendar access is limited. Reconnect Google in LifeOps settings to grant calendar access.",
+      "Calendar access is not available: Google Calendar access is limited. Reconnect Google in LifeOps settings to grant calendar access, or grant Apple Calendar access.",
     );
     expect(service.getNextCalendarEventContext).not.toHaveBeenCalled();
   });

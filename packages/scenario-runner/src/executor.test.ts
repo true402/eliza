@@ -1544,3 +1544,112 @@ describe("scenario executor action turns", () => {
     });
   });
 });
+
+describe("scenario executor message-turn trajectory seam", () => {
+  it("mints a scenario-tagged trajectory + step, threads the step id into the message, and ends the trajectory", async () => {
+    const startTrajectory = vi.fn(async () => "trajectory-1");
+    const startStep = vi.fn(() => "step-1");
+    const endTrajectory = vi.fn(async () => undefined);
+    const seenMetadata: unknown[] = [];
+    const runtime = {
+      ...createRuntime([]),
+      agentId: "agent-trajectory-test",
+      getService: vi.fn((type: string) =>
+        type === "trajectories"
+          ? { startTrajectory, startStep, endTrajectory, isEnabled: () => true }
+          : null,
+      ),
+      messageService: {
+        handleMessage: vi.fn(async (_runtime, message, callback) => {
+          seenMetadata.push((message as Memory).metadata);
+          await callback({ text: "ack" });
+          return {};
+        }),
+      },
+    } as unknown as AgentRuntime;
+
+    const report = await runScenario(
+      {
+        id: "trajectory-seam",
+        title: "Trajectory seam",
+        domain: "executor",
+        turns: [
+          {
+            kind: "message",
+            name: "say hi",
+            text: "hello there",
+          },
+        ],
+      },
+      runtime,
+      {
+        minJudgeScore: 0.8,
+        providerName: "unit-test",
+        turnTimeoutMs: 1_000,
+      },
+    );
+
+    expect(report.status).toBe("passed");
+    expect(startTrajectory).toHaveBeenCalledTimes(1);
+    expect(startTrajectory).toHaveBeenCalledWith(
+      "agent-trajectory-test",
+      expect.objectContaining({
+        scenarioId: "trajectory-seam",
+        metadata: expect.objectContaining({
+          scenarioId: "trajectory-seam",
+          turnName: "say hi",
+        }),
+      }),
+    );
+    expect(startStep).toHaveBeenCalledWith(
+      "trajectory-1",
+      expect.objectContaining({ timestamp: expect.any(Number) }),
+    );
+    expect(seenMetadata[0]).toMatchObject({
+      trajectoryId: "trajectory-1",
+      trajectoryStepId: "step-1",
+    });
+    expect(endTrajectory).toHaveBeenCalledWith("trajectory-1", "completed");
+  });
+
+  it("skips trajectory minting when the service reports disabled", async () => {
+    const startTrajectory = vi.fn(async () => "trajectory-x");
+    const runtime = {
+      ...createRuntime([]),
+      getService: vi.fn((type: string) =>
+        type === "trajectories"
+          ? {
+              startTrajectory,
+              startStep: vi.fn(() => "step-x"),
+              endTrajectory: vi.fn(async () => undefined),
+              isEnabled: () => false,
+            }
+          : null,
+      ),
+      messageService: {
+        handleMessage: vi.fn(async (_runtime, _message, callback) => {
+          await callback({ text: "ack" });
+          return {};
+        }),
+      },
+    } as unknown as AgentRuntime;
+
+    const report = await runScenario(
+      {
+        id: "trajectory-seam-disabled",
+        title: "Trajectory seam disabled",
+        domain: "executor",
+        turns: [{ kind: "message", name: "say hi", text: "hello there" }],
+      },
+      runtime,
+      {
+        minJudgeScore: 0.8,
+        providerName: "unit-test",
+        turnTimeoutMs: 1_000,
+      },
+    );
+
+    expect(report.status).toBe("passed");
+    expect(startTrajectory).not.toHaveBeenCalled();
+  });
+});

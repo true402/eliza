@@ -134,6 +134,89 @@ describe("TrajectoriesService", () => {
 		expect(call.providerMetadata.self).toBe("[Circular]");
 	});
 
+	it("round-trips empty observation/parameters and keeps steps after endTrajectory (regression: [object Object] wipe)", async () => {
+		const trajectoryId = "00000000-0000-4000-8000-000000000030";
+		const service = new TrajectoriesService(createRuntimeWithoutSql());
+		const serviceInternals = service as unknown as {
+			executeRawSql: (
+				sqlText: string,
+			) => Promise<{ rows: Array<Record<string, unknown>>; columns: string[] }>;
+		};
+		const row: Record<string, unknown> = {
+			...makeTrajectoryRow(trajectoryId, "unused"),
+			steps_json: JSON.stringify([]),
+		};
+		serviceInternals.executeRawSql = async (sqlText: string) => {
+			if (sqlText.includes("SELECT * FROM trajectories")) {
+				return { rows: [row], columns: Object.keys(row) };
+			}
+			if (sqlText.includes("SELECT id FROM trajectories")) {
+				return { rows: [{ id: trajectoryId }], columns: ["id"] };
+			}
+			if (sqlText.includes("UPDATE trajectories SET")) {
+				const stepsJson = extractSqlStringAssignment(sqlText, "steps_json");
+				if (stepsJson !== null) {
+					row.steps_json = stepsJson;
+				}
+			}
+			return { rows: [], columns: [] };
+		};
+
+		const stepId = service.startStep(trajectoryId, {
+			timestamp: 1,
+			agentBalance: 0,
+			agentPoints: 0,
+			agentPnL: 0,
+			openPositions: 0,
+		});
+		await service.flushWriteQueue(trajectoryId);
+
+		// The freshly persisted step must keep {} for observation/parameters —
+		// not the "[object Object]" string that made the read-side normalizer
+		// reject the whole steps array.
+		const afterStep = JSON.parse(String(row.steps_json)) as Array<{
+			observation: unknown;
+			action: { parameters: unknown };
+		}>;
+		expect(afterStep).toHaveLength(1);
+		expect(afterStep[0].observation).toEqual({});
+		expect(afterStep[0].action.parameters).toEqual({});
+
+		service.logLlmCall({
+			stepId,
+			model: "test-model",
+			modelType: "TEXT_SMALL",
+			provider: "test",
+			systemPrompt: "",
+			userPrompt: "u",
+			prompt: "u",
+			response: "r",
+			temperature: 0,
+			maxTokens: 0,
+			purpose: "inbox_triage",
+			actionType: "runtime.useModel",
+			latencyMs: 1,
+		});
+		await service.flushWriteQueue(trajectoryId);
+
+		await service.endTrajectory(trajectoryId, "completed");
+
+		// endTrajectory loads + re-persists; the step and its purpose-tagged
+		// LLM call must survive the round-trip instead of being wiped to [].
+		const final = JSON.parse(String(row.steps_json)) as Array<{
+			stepId: string;
+			llmCalls: Array<{ purpose?: string }>;
+		}>;
+		expect(final).toHaveLength(1);
+		expect(final[0].stepId).toBe(stepId);
+		expect(final[0].llmCalls).toHaveLength(1);
+		expect(final[0].llmCalls[0].purpose).toBe("inbox_triage");
+
+		const detail = await service.getTrajectoryDetail(trajectoryId);
+		expect(detail?.steps).toHaveLength(1);
+		expect(detail?.steps[0]?.llmCalls[0]?.purpose).toBe("inbox_triage");
+	});
+
 	it("does not persist internal embedding calls as trajectory LLM calls", () => {
 		const trajectoryId = "00000000-0000-4000-8000-000000000020";
 		const stepId = "00000000-0000-4000-8000-000000000021";

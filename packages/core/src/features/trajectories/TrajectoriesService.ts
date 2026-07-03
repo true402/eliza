@@ -352,6 +352,15 @@ function sanitizeTrajectoryJsonValue(
 		const entries = Object.entries(value as Record<string, unknown>);
 		if (entries.length === 0) {
 			seen.delete(value);
+			// Empty PLAIN objects are valid JSON and must round-trip as {}.
+			// Coercing them to String(value) ("[object Object]") poisoned every
+			// persisted step (observation: {} / action.parameters: {}), which
+			// made the read-side normalizer reject the whole steps array, so the
+			// next load-mutate-persist cycle (endTrajectory) wrote steps_json
+			// back as [] and silently destroyed every recorded step + LLM call.
+			const proto: unknown = Object.getPrototypeOf(value);
+			if (proto === Object.prototype || proto === null) return {};
+			// Exotic zero-enumerable-key instances keep the descriptive label.
 			return String(value);
 		}
 		const output: Record<string, JsonValue> = {};

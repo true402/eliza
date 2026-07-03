@@ -328,27 +328,82 @@ export const deployFrontendAction: Action = {
         buildMeta: { source: "agent" },
       };
       const { deployment } = await client.deployAppFrontend(app.id, body);
+      const sizeSummary = `${deployment.file_count} files, ${(deployment.total_bytes / 1024).toFixed(0)} KB`;
 
-      const reply = [
-        `Published "${app.name}" frontend — v${deployment.version} is now live (${deployment.file_count} files, ${(deployment.total_bytes / 1024).toFixed(0)} KB).`,
-        `Preview it under your app's frontend host. Attach a custom domain to serve it publicly.`,
-      ].join("\n");
+      // The server activates by default, but the returned status is the
+      // authority — activation can fail server-side. Never claim "live" on a
+      // non-active deployment (mirrors DEPLOY_APP's completion gate).
+      let status = deployment.status;
+      let activationError: string | null = null;
+      if (status !== "active" && status !== "failed") {
+        // Uploaded + finalized but not serving (notably "ready") — make one
+        // explicit activation attempt before reporting.
+        try {
+          const activated = await client.activateAppFrontend(
+            app.id,
+            deployment.id,
+          );
+          status = activated.deployment.status;
+        } catch (activateErr) {
+          activationError =
+            activateErr instanceof Error
+              ? activateErr.message
+              : String(activateErr);
+          logger.warn(
+            `[DEPLOY_FRONTEND] activateAppFrontend(${app.id}, ${deployment.id}) failed: ${activationError}`,
+          );
+        }
+      }
 
+      if (status === "active") {
+        const reply = [
+          `Published "${app.name}" frontend — v${deployment.version} is now live (${sizeSummary}).`,
+          `Preview it under your app's frontend host. Attach a custom domain to serve it publicly.`,
+        ].join("\n");
+
+        await callback?.({ text: reply, actions: ["DEPLOY_FRONTEND"] });
+        return {
+          success: true,
+          text: `Published frontend v${deployment.version} for ${app.name}.`,
+          userFacingText: reply,
+          verifiedUserFacing: true,
+          data: {
+            app: { id: app.id, name: app.name },
+            deployment: {
+              id: deployment.id,
+              version: deployment.version,
+              status,
+              files: deployment.file_count,
+              bytes: deployment.total_bytes,
+            },
+          },
+        };
+      }
+
+      // Honest failure — the files uploaded, but the deployment is not live.
+      const detail =
+        status === "failed"
+          ? `the deployment failed${deployment.error ? `: ${deployment.error}` : ""}`
+          : `its status is "${status}"${activationError ? " and activating it failed" : ""}`;
+      const reply = `I uploaded "${app.name}" frontend v${deployment.version} (${sizeSummary}), but it is NOT live — ${detail}. Ask me to list the frontend deployments to check on it, or to publish again.`;
       await callback?.({ text: reply, actions: ["DEPLOY_FRONTEND"] });
       return {
-        success: true,
-        text: `Published frontend v${deployment.version} for ${app.name}.`,
+        success: false,
+        text: `Uploaded frontend v${deployment.version} for ${app.name} but it is not live (${status}).`,
         userFacingText: reply,
         verifiedUserFacing: true,
         data: {
+          reason: "not_active",
           app: { id: app.id, name: app.name },
           deployment: {
             id: deployment.id,
             version: deployment.version,
-            status: deployment.status,
+            status,
             files: deployment.file_count,
             bytes: deployment.total_bytes,
+            error: deployment.error,
           },
+          activationError,
         },
       };
     } catch (err) {

@@ -18,6 +18,7 @@ mock.module("@elizaos/cloud-sdk", () => ({
 
 const { updateAppAction } = await import("../src/actions/update-app.ts");
 const { parseUpdateAppIntent } = await import("../src/actions/update-app.ts");
+const { cloudAppsProvider } = await import("../src/providers/cloud-apps.ts");
 
 const APP = makeApp({ id: "id-acme", name: "Acme Bot", slug: "acme-bot" });
 
@@ -188,5 +189,44 @@ describe("UPDATE_APP", () => {
     );
     expect(result?.success).toBe(false);
     expect((result?.data as { reason: string }).reason).toBe("error");
+  });
+
+  it("invalidates the CLOUD_APPS provider cache after a successful update", async () => {
+    const runtime = keyedRuntime();
+    trackUpdates();
+
+    // Prime the provider's 60s cache with the pre-rename inventory.
+    const primed = await cloudAppsProvider.get(
+      runtime,
+      makeMessage("my apps"),
+      {} as never,
+    );
+    expect(primed.text).toContain("Acme Bot");
+
+    const cb = captureCallback();
+    const result = await updateAppAction.handler(
+      runtime,
+      makeMessage("rename Acme Bot to Zephyr"),
+      undefined,
+      undefined,
+      cb.fn,
+    );
+    expect(result?.success).toBe(true);
+
+    // The server now returns the renamed app. Within the 60s TTL a stale
+    // cache would still render "Acme Bot" — the mutation must have dropped it.
+    setListApps(() =>
+      Promise.resolve({
+        success: true,
+        apps: [makeApp({ id: "id-acme", slug: "acme-bot", name: "Zephyr" })],
+      }),
+    );
+    const after = await cloudAppsProvider.get(
+      runtime,
+      makeMessage("my apps"),
+      {} as never,
+    );
+    expect(after.text).toContain("Zephyr");
+    expect(after.text).not.toContain("Acme Bot");
   });
 });

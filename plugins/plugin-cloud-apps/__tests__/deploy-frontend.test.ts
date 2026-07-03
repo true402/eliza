@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import { promises as fs } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import type { DeployAppFrontendInput } from "@elizaos/cloud-sdk";
+import type {
+  AppFrontendDeploymentDto,
+  DeployAppFrontendInput,
+} from "@elizaos/cloud-sdk";
 import {
   captureCallback,
   FakeElizaCloudClient,
@@ -11,6 +14,7 @@ import {
   makeMessage,
   makeRuntime,
   resetSdk,
+  setActivateAppFrontend,
   setDeployAppFrontend,
   setGetApp,
   setListApps,
@@ -26,6 +30,25 @@ const { deployFrontendAction } = await import(
 );
 
 const APP = makeApp({ id: "app_1", name: "Acme Bot", slug: "acme-bot" });
+
+function makeFeDeployment(
+  overrides: Partial<AppFrontendDeploymentDto> = {},
+): AppFrontendDeploymentDto {
+  return {
+    id: "fe_1",
+    app_id: "app_1",
+    version: 1,
+    status: "active",
+    r2_prefix: "p/",
+    content_hash: "b".repeat(64),
+    file_count: 1,
+    total_bytes: 42,
+    error: null,
+    created_at: "2026-06-29T00:00:00.000Z",
+    activated_at: "2026-06-29T00:00:00.000Z",
+    ...overrides,
+  };
+}
 
 let tmp: string | null = null;
 
@@ -237,6 +260,127 @@ describe("DEPLOY_FRONTEND", () => {
       expect(res.data).toMatchObject({ reason: "read_failed" });
       expect(res.userFacingText).toContain("configured frontend build root");
       expect(uploaded).toBe(false);
+    });
+
+    it("activates a 'ready' deployment before claiming live", async () => {
+      setDeployAppFrontend(() =>
+        Promise.resolve({
+          success: true,
+          deployment: makeFeDeployment({
+            id: "fe_3",
+            version: 3,
+            status: "ready",
+            activated_at: null,
+          }),
+        }),
+      );
+      const activateCalls: Array<{ appId: string; deploymentId: string }> = [];
+      setActivateAppFrontend((appId, deploymentId) => {
+        activateCalls.push({ appId, deploymentId });
+        return Promise.resolve({
+          success: true,
+          deployment: makeFeDeployment({
+            id: deploymentId,
+            version: 3,
+            status: "active",
+          }),
+        });
+      });
+
+      const cb = captureCallback();
+      const res = await deployFrontendAction.handler(
+        keyedRuntime(),
+        makeMessage("publish Acme Bot"),
+        undefined,
+        { files: [{ path: "index.html", content: "<html></html>" }] },
+        cb.fn,
+      );
+
+      expect(activateCalls).toEqual([{ appId: "app_1", deploymentId: "fe_3" }]);
+      expect(res.success).toBe(true);
+      expect(res.userFacingText).toContain("is now live");
+      expect(res.data).toMatchObject({
+        deployment: { id: "fe_3", version: 3, status: "active" },
+      });
+    });
+
+    it("does not claim live when activation fails and the deployment stays 'ready'", async () => {
+      setDeployAppFrontend(() =>
+        Promise.resolve({
+          success: true,
+          deployment: makeFeDeployment({
+            id: "fe_4",
+            version: 4,
+            status: "ready",
+            activated_at: null,
+          }),
+        }),
+      );
+      setActivateAppFrontend(() =>
+        Promise.reject(new Error("activation exploded")),
+      );
+
+      const cb = captureCallback();
+      const res = await deployFrontendAction.handler(
+        keyedRuntime(),
+        makeMessage("publish Acme Bot"),
+        undefined,
+        { files: [{ path: "index.html", content: "<html></html>" }] },
+        cb.fn,
+      );
+
+      expect(res.success).toBe(false);
+      expect(res.userFacingText).not.toContain("now live");
+      expect(res.userFacingText).toContain("NOT live");
+      expect(res.data).toMatchObject({
+        reason: "not_active",
+        deployment: { id: "fe_4", version: 4, status: "ready" },
+        activationError: "activation exploded",
+      });
+      // The connector reply is the same honest message.
+      expect(cb.calls.some((c) => c.text?.includes("NOT live"))).toBe(true);
+    });
+
+    it("reports a failed deployment honestly and never tries to activate it", async () => {
+      setDeployAppFrontend(() =>
+        Promise.resolve({
+          success: true,
+          deployment: makeFeDeployment({
+            id: "fe_5",
+            version: 5,
+            status: "failed",
+            error: "manifest finalize blew up",
+            activated_at: null,
+          }),
+        }),
+      );
+      let activateCalled = false;
+      setActivateAppFrontend(() => {
+        activateCalled = true;
+        return Promise.reject(new Error("should not activate"));
+      });
+
+      const cb = captureCallback();
+      const res = await deployFrontendAction.handler(
+        keyedRuntime(),
+        makeMessage("publish Acme Bot"),
+        undefined,
+        { files: [{ path: "index.html", content: "<html></html>" }] },
+        cb.fn,
+      );
+
+      expect(activateCalled).toBe(false);
+      expect(res.success).toBe(false);
+      expect(res.userFacingText).not.toContain("now live");
+      expect(res.userFacingText).toContain("manifest finalize blew up");
+      expect(res.data).toMatchObject({
+        reason: "not_active",
+        deployment: {
+          id: "fe_5",
+          status: "failed",
+          error: "manifest finalize blew up",
+        },
+      });
     });
   });
 });

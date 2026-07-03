@@ -1,0 +1,98 @@
+Drop box contents: 10 entries
+Max entries: 1000
+Low priority rate limit period: 2000 ms
+Low priority tags: {data_app_wtf, keymaster, system_server_wtf, system_app_strictmode, system_app_wtf, system_server_strictmode, data_app_strictmode, netstats}
+Searching for: data_app_crash
+
+========================================
+2026-07-02 12:40:31 data_app_crash (text, 2337 bytes)
+SystemUptimeMs: 312101956
+Process: ai.elizaos.app
+PID: 7650
+UID: 10371
+Frozen: false
+Flags: 0x38c9be46
+Package: ai.elizaos.app v1 (1.0.0)
+Foreground: No
+Process-Runtime: 1002
+Timestamp: 2026-07-02 12:40:31.550-0700
+Build: google/bluejay/bluejay:16/CP1A.260405.005/15001963:user/release-keys
+DefaultScreen-State: ON
+Keyguard-Locked: false
+Crash-Handler: com.android.internal.os.RuntimeInit$KillApplicationHandler
+Loading-Progress: 1.0
+Dropped-Count: 0
+
+java.lang.RuntimeException: Unable to create service ai.elizaos.app.ElizaAgentService
+	at android.app.ActivityThread.handleCreateService(ActivityThread.java:5590)
+	at android.app.ActivityThread.-$$Nest$mhandleCreateService(Unknown Source:0)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2759)
+	at android.os.Handler.dispatchMessageImpl(Handler.java:142)
+	at android.os.Handler.dispatchMessage(Handler.java:125)
+	at android.os.Looper.loopOnce(Looper.java:269)
+	at android.os.Looper.loop(Looper.java:367)
+	at android.app.ActivityThread.main(ActivityThread.java:9333)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:566)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:929)
+Caused by: android.app.ForegroundServiceStartNotAllowedException: Service.startForeground() not allowed due to mAllowStartForeground false: service ai.elizaos.app/.ElizaAgentService
+	at android.app.ForegroundServiceStartNotAllowedException$1.createFromParcel(ForegroundServiceStartNotAllowedException.java:54)
+	at android.app.ForegroundServiceStartNotAllowedException$1.createFromParcel(ForegroundServiceStartNotAllowedException.java:50)
+	at android.os.Parcel.readParcelableInternal(Parcel.java:5251)
+	at android.os.Parcel.readParcelable(Parcel.java:5232)
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3365)
+	at android.os.Parcel.createException(Parcel.java:3354)
+	at android.os.Parcel.readException(Parcel.java:3337)
+	at android.os.Parcel.readException(Parcel.java:3279)
+	at android.app.IActivityManager$Stub$Proxy.setServiceForeground(IActivityManager.java:7509)
+	at android.app.Service.startForeground(Service.java:862)
+	at ai.elizaos.app.ElizaAgentService.onCreate(ElizaAgentService.java:608)
+	at android.app.ActivityThread.handleCreateService(ActivityThread.java:5579)
+	... 10 more
+
+========================================
+2026-07-02 12:40:33 data_app_crash (text, 2336 bytes)
+SystemUptimeMs: 312104119
+Process: ai.elizaos.app
+PID: 7868
+UID: 10371
+Frozen: false
+Flags: 0x38c9be46
+Package: ai.elizaos.app v1 (1.0.0)
+Foreground: No
+Process-Runtime: 746
+Timestamp: 2026-07-02 12:40:33.713-0700
+Build: google/bluejay/bluejay:16/CP1A.260405.005/15001963:user/release-keys
+DefaultScreen-State: ON
+Keyguard-Locked: false
+Crash-Handler: com.android.internal.os.RuntimeInit$KillApplicationHandler
+Loading-Progress: 1.0
+Dropped-Count: 0
+
+java.lang.RuntimeException: Unable to create service ai.elizaos.app.ElizaAgentService
+	at android.app.ActivityThread.handleCreateService(ActivityThread.java:5590)
+	at android.app.ActivityThread.-$$Nest$mhandleCreateService(Unknown Source:0)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2759)
+	at android.os.Handler.dispatchMessageImpl(Handler.java:142)
+	at android.os.Handler.dispatchMessage(Handler.java:125)
+	at android.os.Looper.loopOnce(Looper.java:269)
+	at android.os.Looper.loop(Looper.java:367)
+	at android.app.ActivityThread.main(ActivityThread.java:9333)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:566)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:929)
+Caused by: android.app.ForegroundServiceStartNotAllowedException: Service.startForeground() not allowed due to mAllowStartForeground false: service ai.elizaos.app/.ElizaAgentService
+	at android.app.ForegroundServiceStartNotAllowedException$1.createFromParcel(ForegroundServiceStartNotAllowedException.java:54)
+	at android.app.ForegroundServiceStartNotAllowedException$1.createFromParcel(ForegroundServiceStartNotAllowedException.java:50)
+	at android.os.Parcel.readParcelableInternal(Parcel.java:5251)
+	at android.os.Parcel.readParcelable(Parcel.java:5232)
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3365)
+	at android.os.Parcel.createException(Parcel.java:3354)
+	at android.os.Parcel.readException(Parcel.java:3337)
+	at android.os.Parcel.readException(Parcel.java:3279)
+	at android.app.IActivityManager$Stub$Proxy.setServiceForeground(IActivityManager.java:7509)
+	at android.app.Service.startForeground(Service.java:862)
+	at ai.elizaos.app.ElizaAgentService.onCreate(ElizaAgentService.java:608)
+	at android.app.ActivityThread.handleCreateService(ActivityThread.java:5579)
+	... 10 more
+

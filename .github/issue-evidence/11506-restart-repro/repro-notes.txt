@@ -1,0 +1,12 @@
+=== FRESH LAUNCH at device time: 2026-07-02 13:42:43
+13:44 tap 'On this device' (265,1922)
+13:44:39 tap 'On this device (recommended)' (404,1829)
+13:45:22 onboarding complete ('Saving first-run profile' shown); tap 'Skip for now'
+13:45:41 typed chat message
+13:46:02 SENT chat message (cold GPU turn begins)
+2026-07-02 15:33:17 PDT repro session start. App pid 18782 already running (elapsed 23:21 at observation), topResumedActivity=ai.elizaos.app/.MainActivity (foreground). Reused this live session instead of relaunching.
+2026-07-02 15:33:17 PDT exit-info-t0.txt captured (baseline, matches morning session in prior evidence; no new deaths since 12:56:47 reinstall).
+2026-07-02 15:33:17 PDT meminfo snapshot: TOTAL PSS 2607938 KB (2.6GB), GL mtrack 2256152 KB (2.25GB), MemAvailable 342160 KB.
+2026-07-02 15:33:17 PDT started background monitors: pid-timeline.log (5s), meminfo-timeline.log (20s), logcat-filtered.log, logcat-events.log.
+2026-07-02 15:35:43 PDT
+background test start

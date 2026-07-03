@@ -146,9 +146,7 @@ export function AppDetailsTabs({ app, showApiKey }: AppDetailsTabsProps) {
         {activeTab === "promote" && <AppPromote app={app} />}
         {activeTab === "analytics" && <AppAnalytics appId={app.id} />}
         {activeTab === "earnings" && <AppEarningsDashboard appId={app.id} />}
-        {activeTab === "monetization" && (
-          <AppMonetizationSettings appId={app.id} />
-        )}
+        {activeTab === "monetization" && <AppMonetizationSettings app={app} />}
         {activeTab === "users" && <AppUsers appId={app.id} />}
         {activeTab === "settings" && <AppSettings app={app} />}
       </div>

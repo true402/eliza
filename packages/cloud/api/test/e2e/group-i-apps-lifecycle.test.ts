@@ -266,14 +266,38 @@ describeE2E("POST /api/v1/apps", () => {
     if (body.app?.id) createdAppIds.push(body.app.id);
   });
 
-  test("monetization: create-time monetization fields persist (verified via GET)", async () => {
+  test("monetization: create-time enable is rejected before review", async () => {
+    const res = await api.post(
+      "/api/v1/apps",
+      {
+        name: uniqueName("Create-Time Monetization Rejected"),
+        description: "App CRUD lifecycle regression test",
+        app_url: "https://example.com/app",
+        website_url: "https://example.com",
+        allowed_origins: ["https://example.com"],
+        skipGitHubRepo: true,
+        monetization_enabled: true,
+        inference_markup_percentage: 25,
+      },
+      { headers: bearerHeaders() },
+    );
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as {
+      code?: string;
+      review_status?: string;
+    };
+    expect(body.code).toBe("app_review_required");
+    expect(body.review_status).toBe("draft");
+  });
+
+  test("monetization: create-time pricing defaults persist while disabled", async () => {
     const app = await createTestApp({
-      monetization_enabled: true,
+      monetization_enabled: false,
       inference_markup_percentage: 25,
     });
 
     const fetched = await getApp(app.id as string);
-    expect(fetched?.monetization_enabled).toBe(true);
+    expect(fetched?.monetization_enabled).toBe(false);
     expect(Number(fetched?.inference_markup_percentage)).toBe(25);
   });
 });

@@ -28,9 +28,8 @@ const CreateAppSchema = z.object({
   allowed_origins: z.array(z.string()).optional(),
   logo_url: z.string().url().optional(),
   skipGitHubRepo: z.boolean().optional(),
-  // Optional monetization config applied immediately after creation. Lets
-  // service callers (e.g. waifu.fun image-gen apps) register a metered app in
-  // one request instead of a create + separate monetization call.
+  // Optional monetization config applied immediately after creation. Enabling
+  // monetization still requires the same review approval as the PUT endpoint.
   monetization_enabled: z.boolean().optional(),
   inference_markup_percentage: z.number().min(0).max(1000).optional(),
 });
@@ -68,6 +67,19 @@ app.post("/", async (c) => {
     }
     const data = validationResult.data;
 
+    if (data.monetization_enabled === true) {
+      return c.json(
+        {
+          success: false,
+          error:
+            "Create the app, submit it for review, then enable monetization after approval.",
+          code: "app_review_required",
+          review_status: "draft",
+        },
+        403,
+      );
+    }
+
     try {
       const result = await appFactoryService.createApp(
         {
@@ -94,8 +106,9 @@ app.post("/", async (c) => {
 
       const warnings = [...result.errors];
 
-      // Apply monetization settings at creation when requested, so metered apps
-      // are usable immediately (markup is read on every inference/generate call).
+      // Persist pricing defaults at creation when requested. Enabling
+      // monetization is deliberately excluded here because it must pass the
+      // same approved-review gate as PUT /apps/:id/monetization.
       if (
         data.monetization_enabled !== undefined ||
         data.inference_markup_percentage !== undefined

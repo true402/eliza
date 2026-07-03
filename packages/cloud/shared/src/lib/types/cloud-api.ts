@@ -104,6 +104,7 @@ export interface InvoiceDto {
 }
 
 export type AppDeploymentStatus = "draft" | "building" | "deploying" | "deployed" | "failed";
+export type AppReviewStatus = "draft" | "submitted" | "under_review" | "approved" | "rejected";
 export type UserDatabaseStatus = "none" | "provisioning" | "ready" | "error";
 
 export interface AppDto {
@@ -149,6 +150,9 @@ export interface AppDto {
   response_notifications: boolean | null;
   is_active: boolean;
   is_approved: boolean;
+  review_status: AppReviewStatus;
+  review_content_hash: string | null;
+  reviewed_at: DateLike | null;
   created_at: DateLike;
   updated_at: DateLike;
   last_used_at: DateLike | null;

@@ -117,6 +117,9 @@ function makeApp(overrides: Partial<App>): App {
     response_notifications: true,
     is_active: true,
     is_approved: true,
+    review_status: "draft",
+    review_content_hash: null,
+    reviewed_at: null,
     created_at: new Date(),
     updated_at: new Date(),
     last_used_at: null,
@@ -580,7 +583,7 @@ describe("POST /api/v1/apps (create)", () => {
     });
   });
 
-  test("200 with monetization fields persisted", async () => {
+  test("403 rejects create-time monetization enablement before creating an app", async () => {
     const { status, json } = await req("POST", "/api/v1/apps", {
       key: KEY_A,
       body: {
@@ -590,16 +593,37 @@ describe("POST /api/v1/apps (create)", () => {
         inference_markup_percentage: 25,
       },
     });
+    expect(status).toBe(403);
+    expect(json.success).toBe(false);
+    expect(json.code).toBe("app_review_required");
+    expect(json.review_status).toBe("draft");
+    expect(createApp).not.toHaveBeenCalled();
+    expect(updateMonetizationSettings).not.toHaveBeenCalled();
+    expect([...store.values()].map((app) => app.name)).not.toContain(
+      "Metered App",
+    );
+  });
+
+  test("200 with create-time pricing defaults persisted while disabled", async () => {
+    const { status, json } = await req("POST", "/api/v1/apps", {
+      key: KEY_A,
+      body: {
+        ...VALID_CREATE,
+        name: "Priced Draft App",
+        monetization_enabled: false,
+        inference_markup_percentage: 25,
+      },
+    });
     expect(status).toBe(200);
     expect(json.success).toBe(true);
     expect(updateMonetizationSettings).toHaveBeenCalledTimes(1);
     expect(updateMonetizationSettings.mock.calls[0][1]).toMatchObject({
-      monetizationEnabled: true,
+      monetizationEnabled: false,
       inferenceMarkupPercentage: 25,
     });
     // Returned app reflects the monetization write (route re-reads via getById).
     const returned = json.app as App;
-    expect(returned.monetization_enabled).toBe(true);
+    expect(returned.monetization_enabled).toBe(false);
     expect(returned.inference_markup_percentage).toBe(25);
   });
 });

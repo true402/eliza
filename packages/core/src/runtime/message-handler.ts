@@ -8,6 +8,7 @@ import type { AgentContext } from "../types/contexts";
 import { normalizeTopics } from "./builtin-field-evaluators";
 import { parseJsonObject, stripJsonStructuralJunkReply } from "./json-output";
 import {
+	looksLikeRawFieldTranscript,
 	parseFieldTranscript,
 	splitTranscriptList,
 } from "./response-field-transcript";
@@ -103,12 +104,22 @@ export function parseMessageHandlerOutput(
 function parseMessageHandlerFieldTranscript(
 	raw: string,
 ): V5MessageHandlerOutput | null {
+	// Only claim text whose own skeleton IS the envelope: it must lead with a
+	// known field line (outside any code fence) and carry a hallmark field
+	// (`shouldRespond:` / `replyText:`) at the top level. Prose that merely
+	// QUOTES field lines — e.g. the model diagnosing a leaked transcript the
+	// user pasted — must fall through to the tolerant plain-text handler
+	// INTACT; claiming it here would drop every line before the quoted
+	// `replyText:` and ship only the quote's tail as the answer.
+	if (!looksLikeRawFieldTranscript(raw)) return null;
 	const transcript = parseFieldTranscript(raw);
 	if (!transcript) return null;
 	const { fields } = transcript;
 
-	// Require at least the routing field plus a reply-bearing field before we
-	// treat the text as a structured transcript. A lone stray `topics:` line in
+	// Require at least one hallmark field before treating the text as a
+	// structured transcript: the routing field (`shouldRespond:` may
+	// legitimately stand alone, e.g. an IGNORE echo with no reply) or the
+	// reply-bearing field (`replyText:`). A lone stray `topics:` line in
 	// otherwise-prose output should NOT be reinterpreted as an envelope.
 	const hasShouldRespond = typeof fields.shouldRespond === "string";
 	const hasReplyText = typeof fields.replyText === "string";

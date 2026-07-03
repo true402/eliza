@@ -6281,7 +6281,12 @@ export async function runV5MessageRuntimeStage1(args: {
 			// `shouldRespond:/replyText:/...` skeleton (a parse fell through
 			// somewhere upstream), extract the intended replyText value; if that
 			// can't be recovered, drop it and let the unusable-reply deferral below
-			// take over. Cheap: regex check only, no full parse on the common path.
+			// take over. Cheap: line scan only, no full parse on the common path.
+			// Replies that merely QUOTE a transcript — prose preamble before the
+			// first field line, or field lines inside a code fence (the agent
+			// diagnosing a transcript the user pasted) — are exempt: the detector
+			// fires only when the skeleton IS the reply, so a legitimate diagnosis
+			// is never rewritten down to its quoted replyText tail.
 			if (looksLikeRawFieldTranscript(reply)) {
 				const recovered = extractReplyTextFromTranscript(reply);
 				args.runtime.logger?.warn?.(

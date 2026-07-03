@@ -1,0 +1,54 @@
+# Restore provenance — fix/11376-pa-completion-slice
+
+HEAD: 18cb6dc2848f09e6374fe6a2388acedc9965320a
+merge-base with origin/develop: 4ea1fd2f019b68f8da8d087a2e71da1c39dfb675
+pre-clobber ref: 5b714c74e6^ (dc1a63b10381669a8cd46b1ce2e252a949b38de3)
+Generated: 2026-07-03T01:04:23Z
+
+Columns: vs-pre-clobber = branch file content vs 5b714c74e6^ (IDENTICAL = pure restore, RECONCILED = hand-merged with post-clobber develop evolution, NOT-IN-PRECLOBBER = new file); post-clobber-commits = develop commits touching the file after the #11271 squash.
+
+FILE                                                                                                 vs-pre-clobber     post-clobber-commits
+packages/core/src/generated/action-docs.ts                                                           RECONCILED         0
+packages/prompts/specs/actions/plugins.generated.json                                                RECONCILED         0
+packages/registry/generated-registry.json                                                            RECONCILED         0
+plugins/plugin-goals/src/services/checkin.harness.test.ts                                            IDENTICAL          0
+plugins/plugin-goals/src/services/checkin.test.ts                                                    IDENTICAL          0
+plugins/plugin-personal-assistant/package.json                                                       IDENTICAL          0
+plugins/plugin-personal-assistant/scripts/lint-default-packs.mjs                                     IDENTICAL          0
+plugins/plugin-personal-assistant/src/actions/document.ts                                            IDENTICAL          0
+plugins/plugin-personal-assistant/src/actions/life.ts                                                IDENTICAL          0
+plugins/plugin-personal-assistant/src/actions/resolve-request.ts                                     RECONCILED         1
+plugins/plugin-personal-assistant/src/activity-profile/analyzer.ts                                   IDENTICAL          0
+plugins/plugin-personal-assistant/src/activity-profile/proactive-worker.test.ts                      IDENTICAL          0
+plugins/plugin-personal-assistant/src/activity-profile/proactive-worker.ts                           IDENTICAL          1
+plugins/plugin-personal-assistant/src/default-packs/spine-registration.ts                            IDENTICAL          0
+plugins/plugin-personal-assistant/src/lifeops/access.ts                                              RECONCILED         0
+plugins/plugin-personal-assistant/src/lifeops/background-planner.ts                                  RECONCILED         1
+plugins/plugin-personal-assistant/src/lifeops/connectors/_helpers.ts                                 IDENTICAL          0
+plugins/plugin-personal-assistant/src/lifeops/domains/goals-service.ts                               IDENTICAL          0
+plugins/plugin-personal-assistant/src/lifeops/messaging/owner-send-policy.ts                         IDENTICAL          0
+plugins/plugin-personal-assistant/src/lifeops/scheduled-task/event-bridge-wiring.integration.test.ts IDENTICAL          0
+plugins/plugin-personal-assistant/src/lifeops/scheduled-task/inbound-reply-completion.integration.test.ts IDENTICAL          0
+plugins/plugin-personal-assistant/src/lifeops/scheduled-task/inbound-reply-completion.ts             IDENTICAL          0
+plugins/plugin-personal-assistant/src/lifeops/scheduled-task/runtime-wiring.ts                       RECONCILED         1
+plugins/plugin-personal-assistant/src/lifeops/scheduled-task/subject-store.integration.test.ts       IDENTICAL          0
+plugins/plugin-personal-assistant/src/lifeops/scheduled-task/subject-store.ts                        IDENTICAL          0
+plugins/plugin-personal-assistant/src/plugin.ts                                                      RECONCILED         2
+plugins/plugin-personal-assistant/src/routes/website-blocker-routes.ts                               IDENTICAL          0
+plugins/plugin-personal-assistant/src/website-blocker/chat-integration/__tests__/actions.test.ts     IDENTICAL          0
+plugins/plugin-personal-assistant/src/website-blocker/chat-integration/__tests__/block-lifecycle-os.test.ts IDENTICAL          0
+plugins/plugin-personal-assistant/src/website-blocker/chat-integration/__tests__/block-rule-reconcile-task.test.ts IDENTICAL          0
+plugins/plugin-personal-assistant/src/website-blocker/chat-integration/__tests__/block-rule-reconciler.test.ts IDENTICAL          0
+plugins/plugin-personal-assistant/src/website-blocker/chat-integration/__tests__/block-rule-service.test.ts IDENTICAL          0
+plugins/plugin-personal-assistant/src/website-blocker/chat-integration/__tests__/test-harness.ts     IDENTICAL          0
+plugins/plugin-personal-assistant/src/website-blocker/chat-integration/block-activator.ts            IDENTICAL          0
+plugins/plugin-personal-assistant/src/website-blocker/chat-integration/block-rule-reconciler.ts      IDENTICAL          0
+plugins/plugin-personal-assistant/src/website-blocker/chat-integration/block-rule-service.ts         IDENTICAL          0
+plugins/plugin-personal-assistant/src/website-blocker/chat-integration/index.ts                      IDENTICAL          0
+plugins/plugin-personal-assistant/src/website-blocker/proactive-block-bridge.ts                      IDENTICAL          0
+plugins/plugin-personal-assistant/test/default-pack-spine-seeding.test.ts                            IDENTICAL          0
+plugins/plugin-personal-assistant/test/integration-lane.smoke.integration.test.ts                    IDENTICAL          0
+plugins/plugin-personal-assistant/test/life-connected-query.test.ts                                  RECONCILED         0
+plugins/plugin-personal-assistant/test/owner-send-approval-worker.test.ts                            IDENTICAL          0
+plugins/plugin-personal-assistant/test/owner-timezone-decisions.test.ts                              IDENTICAL          0
+plugins/plugin-personal-assistant/test/resolve-request-executor.test.ts                              IDENTICAL          0

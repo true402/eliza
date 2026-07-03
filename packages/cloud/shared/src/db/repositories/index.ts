@@ -103,6 +103,7 @@ export * from "./model-pricing";
 // ============================================
 // Core Platform Repositories
 // ============================================
+export * from "./org-files";
 export * from "./org-rate-limit-overrides";
 export * from "./org-storage-quota";
 export * from "./organization-invites";

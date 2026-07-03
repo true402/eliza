@@ -152,7 +152,7 @@ export async function serveBlobHostRequest(
  * media-store convention in `packages/agent/src/api/media-store.ts` (cloud/api
  * cannot import across that boundary, so the logic lives locally).
  */
-function isInlineSafeContentType(contentType: string): boolean {
+export function isInlineSafeContentType(contentType: string): boolean {
   const mime = (contentType.split(";")[0] ?? "").trim().toLowerCase();
   if (mime === "image/svg+xml") return false;
   return (

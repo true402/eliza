@@ -228,8 +228,15 @@ export const trajectoriesPlugin: Plugin = {
 						message,
 						meta,
 					);
+					// Thread a caller-provided scenario id into the trajectory row's
+					// scenario_id column (not just metadata) so scenario-scoped
+					// consumers — e.g. the scenario-runner's `modelCallOccurred`
+					// final check via listTrajectories({ scenarioId }) — can find
+					// the run's trajectories.
+					const scenarioId = readNonEmptyString(meta.scenarioId);
 					const trajectoryId = await logger.startTrajectory(runtime.agentId, {
 						source: source ?? (meta.source as string) ?? "chat",
+						...(scenarioId ? { scenarioId } : {}),
 						metadata: trajectoryMetadata,
 					});
 

@@ -178,6 +178,10 @@ function readString(
     : undefined;
 }
 
+function sessionHandedOffToSuccessor(meta: Record<string, unknown>): boolean {
+  return readString(meta, HANDED_OFF_SUCCESSOR_META_KEY) !== undefined;
+}
+
 // Same UUID shape the sub-agent-router's `pickUuid` gate accepts. Kept as a
 // local literal (not an import from sub-agent-router) so the coordinator does
 // not take a dependency on the router module — that file already imports this
@@ -858,8 +862,13 @@ export class SwarmCoordinatorService extends Service {
     // generation. A genuine user stop carries no marker and still synthesizes
     // (the #11689 invariant). Do NOT claim the dedupe slot — the successor's
     // terminal must remain free to post.
-    if (readString(meta, HANDED_OFF_SUCCESSOR_META_KEY)) {
-      return;
+    if (event === "stopped") {
+      const handedOff =
+        sessionHandedOffToSuccessor(meta) ||
+        sessionHandedOffToSuccessor(
+          await this.getFreshSessionMetadata(sessionId),
+        );
+      if (handedOff) return;
     }
 
     // Ownership rule (issue elizaOS/eliza#11634): the sub-agent-router owns the
@@ -1061,6 +1070,36 @@ export class SwarmCoordinatorService extends Service {
 
   private shouldEnrichEvent(event: string): boolean {
     return !STREAMING_SESSION_EVENTS.has(event);
+  }
+
+  /**
+   * Cache-bypassing session-metadata read used by the handoff-teardown skip
+   * (issue elizaOS/eliza#11711). The enrichment cache can hold a pre-stamp
+   * snapshot of a session the router just superseded, so the `stopped` decision
+   * must be able to see a marker written after the cache was populated. Returns
+   * `{}` on any miss/error so callers treat "unknown" as "not superseded" and
+   * default to synthesizing (never silences a genuine stop).
+   */
+  private async getFreshSessionMetadata(
+    sessionId: string,
+  ): Promise<Record<string, unknown>> {
+    try {
+      const session = await this.acp()?.getSession(sessionId);
+      if (session && isRecord(session.metadata)) {
+        // Refresh the cache so downstream reads in this same turn see the
+        // freshly-observed metadata rather than the stale pre-stamp snapshot.
+        const refreshed: EnrichmentMetadata = {
+          metadata: session.metadata,
+          ...(session.workdir ? { workdir: session.workdir } : {}),
+          ...(session.agentType ? { agentType: session.agentType } : {}),
+        };
+        this.enrichmentMetadataCache.set(sessionId, refreshed);
+        return session.metadata;
+      }
+    } catch {
+      // fall through to empty
+    }
+    return {};
   }
 
   private async getEnrichmentMetadata(

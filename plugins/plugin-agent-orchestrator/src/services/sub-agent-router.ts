@@ -859,12 +859,16 @@ export class SubAgentRouter extends Service {
             return;
           }
           if (decision.kind === "respawn") {
-            const respawned = await this.respawnStateLost(
+            const respawnedSessionId = await this.respawnStateLost(
               session,
               `account ${failureKind}`,
             );
-            if (respawned) {
+            if (respawnedSessionId) {
               this.verifyRetryHandedOffSessions.add(sessionId);
+              // Stamp the handoff BEFORE stopping the old session so the
+              // coordinator skips synthesizing the teardown `stopped` (issue
+              // elizaOS/eliza#11711); the respawn's terminal reports instead.
+              await this.markSessionHandedOff(sessionId, respawnedSessionId);
               await acp.stopSession(sessionId).catch(() => {});
               return;
             }
@@ -924,9 +928,13 @@ export class SubAgentRouter extends Service {
         // the normal error narration so the user gets an honest report instead
         // of silence.
         stateLostRespawnCount = decision.count;
-        const respawned = await this.respawnStateLost(session);
-        if (respawned) {
+        const respawnedSessionId = await this.respawnStateLost(session);
+        if (respawnedSessionId) {
           this.verifyRetryHandedOffSessions.add(sessionId);
+          // Stamp the handoff BEFORE stopping the old session so the coordinator
+          // skips synthesizing the teardown `stopped` (issue
+          // elizaOS/eliza#11711); the respawn's terminal reports instead.
+          await this.markSessionHandedOff(sessionId, respawnedSessionId);
           await acp.stopSession(sessionId).catch(() => {});
           return;
         }
@@ -1120,9 +1128,14 @@ export class SubAgentRouter extends Service {
     // back in, before surfacing the failure to the user. When a retry is
     // spawned, suppress this post — the retry's own task_complete reports.
     if (event === "task_complete" && deadUrls.length > 0) {
-      const retried = await this.retryIncompleteBuild(session, deadUrls);
-      if (retried) {
+      const retrySessionId = await this.retryIncompleteBuild(session, deadUrls);
+      if (retrySessionId) {
         this.verifyRetryHandedOffSessions.add(sessionId);
+        // Mark the old session superseded so the coordinator skips synthesizing
+        // its teardown `stopped` (auto-close fires because the session carries
+        // keepAliveAfterComplete:false) — the retry's own terminal reports to
+        // the user instead (issue elizaOS/eliza#11711).
+        await this.markSessionHandedOff(sessionId, retrySessionId);
         this.captureOriginResultForCompletion(
           origin,
           session,
@@ -1522,19 +1535,19 @@ export class SubAgentRouter extends Service {
   private async respawnStateLost(
     session: SessionInfo,
     reason = "session_state_lost",
-  ): Promise<boolean> {
+  ): Promise<string | null> {
     const meta = (session.metadata ?? {}) as Record<string, unknown>;
     // The original task is stashed on metadata by TASKS op=spawn_agent —
     // SessionInfo itself doesn't carry it. Without it we can't reconstruct the
     // work, so surface the failure honestly instead of respawning a blank one.
     const originalTask =
       typeof meta.initialTask === "string" ? meta.initialTask.trim() : "";
-    if (!originalTask) return false;
+    if (!originalTask) return null;
 
     const service =
       this.acp ??
       (this.runtime.getService("ACP_SUBPROCESS_SERVICE") as AcpService | null);
-    if (!service?.spawnSession) return false;
+    if (!service?.spawnSession) return null;
 
     // Drop the dead session's account descriptor: spawnSession re-selects and
     // re-stamps `account`, but if the pool degrades to single-account on the
@@ -1562,10 +1575,7 @@ export class SubAgentRouter extends Service {
         sessionId: session.id,
         retrySessionId: result.sessionId,
       });
-      // Same handoff stamp as verify-retry (#11711): the old session's teardown
-      // `stopped` is plumbing, not a user-facing completion — the respawn posts.
-      await this.markSessionHandedOff(session.id, result.sessionId);
-      return true;
+      return result.sessionId;
     } catch (err) {
       this.log(
         "warn",
@@ -1575,7 +1585,7 @@ export class SubAgentRouter extends Service {
           error: err instanceof Error ? err.message : String(err),
         },
       );
-      return false;
+      return null;
     }
   }
 
@@ -1639,11 +1649,11 @@ export class SubAgentRouter extends Service {
   private async retryIncompleteBuild(
     session: SessionInfo,
     dead: DeadUrl[],
-  ): Promise<boolean> {
+  ): Promise<string | null> {
     const maxRetriesRaw =
       readSetting(this.runtime, "ELIZA_BUILD_VERIFY_MAX_RETRIES") ?? "2";
     const maxRetries = Number.parseInt(maxRetriesRaw, 10);
-    if (!Number.isFinite(maxRetries) || maxRetries <= 0) return false;
+    if (!Number.isFinite(maxRetries) || maxRetries <= 0) return null;
 
     const meta = (session.metadata ?? {}) as Record<string, unknown>;
     const priorRetries =
@@ -1656,19 +1666,19 @@ export class SubAgentRouter extends Service {
         "build still incomplete after verify-retry budget exhausted",
         { sessionId: session.id, retries: priorRetries, maxRetries },
       );
-      return false;
+      return null;
     }
 
     // The original task is stashed on metadata by TASKS op=spawn_agent —
     // SessionInfo itself doesn't carry it.
     const originalTask =
       typeof meta.initialTask === "string" ? meta.initialTask.trim() : "";
-    if (!originalTask) return false;
+    if (!originalTask) return null;
 
     const service =
       this.acp ??
       (this.runtime.getService("ACP_SUBPROCESS_SERVICE") as AcpService | null);
-    if (!service?.spawnSession) return false;
+    if (!service?.spawnSession) return null;
 
     const nextRetry = priorRetries + 1;
     const cachedStaleMissUrls = mergeCachedStaleMissUrls(
@@ -1730,12 +1740,7 @@ Do not report done until every referenced URL in the final page resolves without
         maxRetries,
         deadCount: dead.length,
       });
-      // Mark the old session as handed off BEFORE its teardown `stopped` fires
-      // so synthesis treats that stop as plumbing, not a second completion
-      // (#11711). Best-effort: a missed stamp only risks the prior duplicate
-      // post, never a dropped genuine terminal.
-      await this.markSessionHandedOff(session.id, result.sessionId);
-      return true;
+      return result.sessionId;
     } catch (err) {
       this.log(
         "warn",
@@ -1745,7 +1750,7 @@ Do not report done until every referenced URL in the final page resolves without
           error: err instanceof Error ? err.message : String(err),
         },
       );
-      return false;
+      return null;
     }
   }
 

@@ -749,6 +749,7 @@ describe("SwarmCoordinatorService", () => {
   // A router-routed session stamps a valid UUID roomId + taskRoomId + source.
   const ROUTER_ROOM_ID = "11111111-1111-4111-8111-111111111111";
   const ROUTER_TASK_ROOM_ID = "22222222-2222-4222-8222-222222222222";
+  const HANDED_OFF_SUCCESSOR_META_KEY = "handedOffToSuccessorSessionId";
 
   it("does NOT fire swarm-complete for a router-origin session when the router is active (task_complete)", async () => {
     const acp = makeAcpStub({
@@ -1023,6 +1024,166 @@ describe("SwarmCoordinatorService", () => {
       total: 1,
       completed: 1,
       tasks: [{ sessionId: "sess-validated", status: "completed" }],
+    });
+    await coordinator.stop();
+  });
+
+  // Handoff-teardown skip (#11711): the sub-agent-router tears down the OLD
+  // session (verify-retry / state-lost respawn / account-failover) with
+  // acp.stopSession after handing the work to a fresh successor — emitting a
+  // `stopped` that #11689 keeps synthesis as the poster for. The router stamps
+  // handedOffToSuccessorSessionId on the old session's metadata before it stops it;
+  // synthesis must skip that teardown `stopped` (the successor's terminal
+  // reports), while a genuine user stop (no marker) must still synthesize once.
+  it("does NOT synthesize a `stopped` teardown of a handed-off (superseded) session", async () => {
+    const acp = makeAcpStub({
+      agentType: "codex",
+      workdir: "/tmp/wd",
+      metadata: {
+        label: "build-site",
+        originRoomId: ROUTER_ROOM_ID,
+        taskRoomId: ROUTER_TASK_ROOM_ID,
+        source: "discord",
+        // Router stamped this before stopSession — the retry successor exists.
+        [HANDED_OFF_SUCCESSOR_META_KEY]: "succ-77207b2c",
+      },
+    });
+    const runtime = makeRuntime({
+      [AcpService.serviceType]: acp,
+      [SUB_AGENT_ROUTER_SERVICE_TYPE]: makeRouterStub(true),
+    });
+    const coordinator = await SwarmCoordinatorService.start(runtime);
+
+    const fired = vi.fn(async () => {});
+    coordinator.setSwarmCompleteCallback(fired);
+
+    acp.emit("sess-superseded", "stopped", {});
+    await new Promise((r) => setTimeout(r, 0));
+
+    // The teardown-stop is plumbing: no user-facing synthesis post.
+    expect(fired).not.toHaveBeenCalled();
+    await coordinator.stop();
+  });
+
+  it("STILL synthesizes a plain user `stopped` (no supersede marker) exactly once (#11689 contract)", async () => {
+    // Invariant: a genuine user cancel / no-output stop carries no handoff
+    // marker, so the #11711 skip must NOT swallow it — synthesis stays the
+    // sole poster for `stopped`.
+    const acp = makeAcpStub({
+      agentType: "codex",
+      workdir: "/tmp/wd",
+      metadata: {
+        label: "build-site",
+        originRoomId: ROUTER_ROOM_ID,
+        taskRoomId: ROUTER_TASK_ROOM_ID,
+        source: "discord",
+        // No handoff marker.
+      },
+    });
+    const runtime = makeRuntime({
+      [AcpService.serviceType]: acp,
+      [SUB_AGENT_ROUTER_SERVICE_TYPE]: makeRouterStub(true),
+    });
+    const coordinator = await SwarmCoordinatorService.start(runtime);
+
+    const fired = vi.fn(async () => {});
+    coordinator.setSwarmCompleteCallback(fired);
+
+    acp.emit("sess-user-stop", "stopped", {});
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(fired).toHaveBeenCalledTimes(1);
+    expect(fired.mock.calls[0][0]).toMatchObject({
+      total: 1,
+      stopped: 1,
+      tasks: [{ sessionId: "sess-user-stop", status: "stopped" }],
+    });
+    await coordinator.stop();
+  });
+
+  it("catches a supersede marker stamped AFTER the enrichment cache was warmed (fresh store re-read)", async () => {
+    // The enrichment cache is populated from the store on the earlier
+    // same-session `task_complete` (the one that triggered the retry) BEFORE the
+    // router stamps the marker. The `stopped` decision must re-read the store so
+    // a freshly-stamped handoff is not mistaken for a user stop.
+    const acp = makeAcpStub({
+      agentType: "codex",
+      workdir: "/tmp/wd",
+      metadata: {
+        label: "build-site",
+        originRoomId: ROUTER_ROOM_ID,
+        taskRoomId: ROUTER_TASK_ROOM_ID,
+        source: "discord",
+        // No marker yet — mirrors the store at task_complete time.
+      },
+    });
+    const runtime = makeRuntime({
+      [AcpService.serviceType]: acp,
+      [SUB_AGENT_ROUTER_SERVICE_TYPE]: makeRouterStub(true),
+    });
+    const coordinator = await SwarmCoordinatorService.start(runtime);
+
+    const fired = vi.fn(async () => {});
+    coordinator.setSwarmCompleteCallback(fired);
+
+    // Turn 1: router-owned task_complete warms the enrichment cache (pre-stamp,
+    // no marker) and is skipped without consuming the synthesis slot.
+    acp.emit("sess-cache-race", "task_complete", { response: "deployed" });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(fired).not.toHaveBeenCalled();
+
+    // The router now stamps the handoff on the store, THEN stops the session.
+    acp.setSession({
+      agentType: "codex",
+      workdir: "/tmp/wd",
+      metadata: {
+        label: "build-site",
+        originRoomId: ROUTER_ROOM_ID,
+        taskRoomId: ROUTER_TASK_ROOM_ID,
+        source: "discord",
+        [HANDED_OFF_SUCCESSOR_META_KEY]: "succ-8f7dd9f5",
+      },
+    });
+    acp.emit("sess-cache-race", "stopped", {});
+    await new Promise((r) => setTimeout(r, 0));
+
+    // Fresh re-read observes the marker: teardown is skipped despite the stale
+    // cached snapshot.
+    expect(fired).not.toHaveBeenCalled();
+    await coordinator.stop();
+  });
+
+  it("STILL synthesizes when a handoff FAILED (respawn spawn threw — no marker, honest stop)", async () => {
+    // Invariant: an errored handoff never stamps the marker (the router falls
+    // through to post honestly), and the fallthrough teardown `stopped` must not
+    // be swallowed — the user still gets a terminal notice.
+    const acp = makeAcpStub({
+      agentType: "codex",
+      workdir: "/tmp/wd",
+      metadata: {
+        label: "build-site",
+        originRoomId: ROUTER_ROOM_ID,
+        taskRoomId: ROUTER_TASK_ROOM_ID,
+        source: "discord",
+        // Handoff failed: no marker was ever written.
+      },
+    });
+    const runtime = makeRuntime({
+      [AcpService.serviceType]: acp,
+      [SUB_AGENT_ROUTER_SERVICE_TYPE]: makeRouterStub(true),
+    });
+    const coordinator = await SwarmCoordinatorService.start(runtime);
+
+    const fired = vi.fn(async () => {});
+    coordinator.setSwarmCompleteCallback(fired);
+
+    acp.emit("sess-failed-handoff", "stopped", {});
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(fired).toHaveBeenCalledTimes(1);
+    expect(fired.mock.calls[0][0]).toMatchObject({
+      stopped: 1,
+      tasks: [{ sessionId: "sess-failed-handoff", status: "stopped" }],
     });
     await coordinator.stop();
   });

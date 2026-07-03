@@ -15,7 +15,6 @@ import { build } from "esbuild";
 import { chromium } from "playwright";
 import {
   FRAME_SAMPLER_INIT,
-  shouldReportFrameBudget,
   summarizeFrameSamples,
 } from "../../../hooks/frame-budget.ts";
 import {
@@ -36,6 +35,7 @@ const FRAME_GATE = {
   droppedFrameRatio: 0.2,
   reportOnLongTask: false,
 };
+const DROPPED_FRAME_EPSILON_MS = 0.5;
 const MIN_FRAME_SAMPLES = 30;
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -709,10 +709,23 @@ try {
     );
     await mobile.evaluate(() => window.__ELIZA_FRAME.stop());
     const s = summarizeFrameSamples(deltas, longTasks, FRAME_BUDGET);
-    const droppedPct = (100 * s.droppedFrames) / Math.max(1, s.sampleCount);
+    // Chromium's headless rAF timestamps commonly quantize 60 Hz frames as
+    // 16.7-16.8ms. Treat those as on-budget; real drops still exceed the budget
+    // by more than the timestamp jitter and p95 remains the primary jank gate.
+    const effectiveDroppedFrames = deltas.filter(
+      (delta) =>
+        Number.isFinite(delta) &&
+        delta > s.budgetMs + DROPPED_FRAME_EPSILON_MS,
+    ).length;
+    const droppedPct =
+      (100 * effectiveDroppedFrames) / Math.max(1, s.sampleCount);
+    const overP95Budget = s.p95FrameMs > s.budgetMs * FRAME_GATE.p95BudgetFactor;
+    const overDroppedBudget =
+      effectiveDroppedFrames / Math.max(1, s.sampleCount) >=
+      FRAME_GATE.droppedFrameRatio;
     console.log(
       `  [rail-swipe] fps=${s.fps.toFixed(1)} p95=${s.p95FrameMs.toFixed(1)}ms ` +
-        `worst=${s.worstFrameMs.toFixed(1)}ms dropped=${s.droppedFrames}/${s.sampleCount} ` +
+        `worst=${s.worstFrameMs.toFixed(1)}ms dropped=${effectiveDroppedFrames}/${s.sampleCount} ` +
         `(${droppedPct.toFixed(0)}%) long=${s.longTasks}`,
     );
     assert(
@@ -720,7 +733,7 @@ try {
       `rail-swipe window captured ≥${MIN_FRAME_SAMPLES} frames (got ${s.sampleCount})`,
     );
     assert(
-      !shouldReportFrameBudget(s, FRAME_GATE),
+      !overP95Budget && !overDroppedBudget,
       `rail swipe stays within the frame budget (p95 ${s.p95FrameMs.toFixed(1)}ms ≤ ` +
         `${(s.budgetMs * FRAME_GATE.p95BudgetFactor).toFixed(1)}ms, dropped ` +
         `${droppedPct.toFixed(0)}% < ${(FRAME_GATE.droppedFrameRatio * 100).toFixed(0)}%)`,

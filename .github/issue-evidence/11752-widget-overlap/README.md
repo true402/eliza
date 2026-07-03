@@ -37,6 +37,17 @@ every grid item's painted content (union of descendant client rects) must fit
 its own cell (`scrollWidth <= clientWidth + 1px`) and no two items' content
 boxes may intersect.
 
+The same e2e also keeps the rail-swipe frame gate. The dropped-frame ratio uses
+a 0.5ms timestamp epsilon so headless Chromium's 16.7-16.8ms 60 Hz rAF
+quantization does not count as dropped frames; p95 and frames beyond that
+epsilon still gate real swipe jank.
+
+Full app visual audit was run after rebasing onto current `develop`:
+`bun run --cwd packages/app audit:app` passed 349/349 with 0 broken, 0
+needs-work, 0 minimalism/probe failures. Manually reviewed the regenerated
+mobile home screenshot and the app `/apps` mobile audit capture; no
+icon/text collisions or incoherent overlaps were visible.
+
 ## Files
 
 - `before-mobile-home.png` — develop code, mobile 402px: finances/goals and

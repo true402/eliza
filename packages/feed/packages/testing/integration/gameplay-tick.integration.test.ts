@@ -367,6 +367,30 @@ describe("Gameplay Tick Integration", () => {
       return;
     }
 
+    // Warm-up request: the integration harness runs `next dev`, which compiles
+    // this route on first hit (measured >20s cold on a loaded host). The
+    // 10-second hang detector below is meant to catch a hanging *handler*, not
+    // webpack compile latency, so pay the one-time compile cost here with a
+    // generous timeout and no assertions.
+    const warmupController = new AbortController();
+    const warmupTimeoutId = setTimeout(() => warmupController.abort(), 90000);
+    try {
+      await fetch(`${BASE_URL}/api/cron/agent-tick`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${cronSecret}`,
+          "x-integration-probe": "1",
+        },
+        signal: warmupController.signal,
+      });
+    } catch {
+      // Warm-up failures are not the contract under test; the timed probe
+      // below reports the real result.
+    } finally {
+      clearTimeout(warmupTimeoutId);
+    }
+
     // Use a shorter timeout for the test to fail fast if endpoint hangs
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
@@ -404,5 +428,5 @@ describe("Gameplay Tick Integration", () => {
       // Other network errors are acceptable for this test
       console.log("⚠️  Cron endpoint test error (acceptable):", error);
     }
-  }, 15000); // 15 second test timeout (longer than fetch timeout)
+  }, 120000); // covers the one-time dev-server compile warm-up + the 10s probe
 });
